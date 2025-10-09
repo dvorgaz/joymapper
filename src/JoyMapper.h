@@ -68,6 +68,7 @@ int GetShiftAmount(unsigned long flag);
 #define MAX_SPECIAL_BUTTONS		10
 #define NUM_MOUSE_BUTTONS		4
 #define MAX_BUTTON_ON_AXIS		3
+#define MAX_KEYS				170
 
 #define M_PI 3.14159265358979323846
 
@@ -219,6 +220,17 @@ protected:
 		void CycleValue(bool reverse = false);
 	};
 
+	struct ButtonThrottle
+	{
+		double* output = nullptr;
+		double* abDetent = nullptr;
+		double speed = 1.0;
+		int dir = 0;
+		bool pressed = false;
+
+		void Update(const STime& time);
+	};
+
 	struct MenuOption
 	{
 		std::wstring label;
@@ -243,6 +255,10 @@ protected:
 	unsigned long m_MenuActivateBtn2;
 	unsigned long m_MenuAcceptBtn;
 	unsigned long m_MenuCancelBtn;
+	unsigned long m_MenuUpBtn;
+	unsigned long m_MenuRightBtn;
+	unsigned long m_MenuDownBtn;
+	unsigned long m_MenuLeftBtn;
 	
 	// HID axes
 	double m_PhysAxisX;
@@ -258,7 +274,7 @@ protected:
 
 	double m_ButtonPressedTime[NUM_PHYSICAL_BUTTONS];
 	double m_ButtonHoldTime[NUM_PHYSICAL_BUTTONS];
-	unsigned short m_MouseButtons[NUM_MOUSE_BUTTONS];
+	unsigned long m_MouseButtons[NUM_MOUSE_BUTTONS];
 	SpecialButton m_SpecialButtons[MAX_SPECIAL_BUTTONS];
 
 	double* m_AfterburnerDetent;
@@ -289,6 +305,9 @@ protected:
 	unsigned short m_VibrationLeft;
 	unsigned short m_VibrationRight;
 	double m_VibrationTime;
+
+	bool m_Keys[MAX_KEYS];
+	bool m_KeysPrev[MAX_KEYS];
 
 	void SetLogicalButton(int index, bool on);
 	void UpdateLogicalButtons(const STime& time);
@@ -323,6 +342,7 @@ public:
 	void SetButtonsPov(unsigned long buttons, unsigned long hat);
 	void SetAxesXInput(long x, long y, long z, long rx, long ry, long rz);
 	void SetAxesHID(double x, double y, double z, double rx, double ry, double rz, double sl, double di);
+	void SetKey(unsigned long keyCode, bool down);
 
 	long GetMappedButtons(unsigned int index);
 	unsigned long GetMappedPov(unsigned int index);
@@ -330,4 +350,8 @@ public:
 
 	void GetVibration(unsigned short& left, unsigned short& right);
 	double GetAfterburnerDetent();
+
+	bool GetKey(unsigned long keyCode);
+	bool GetKeyDown(unsigned long keyCode);
+	bool GetKeyUp(unsigned long keyCode);
 };

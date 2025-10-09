@@ -23,27 +23,46 @@
 //-----------------------------------------------------------------------------
 // Gunfighter Kosmosima physical buttons
 //-----------------------------------------------------------------------------
-#define GF_KOS_TRIGGER_1		0x00000001
-#define GF_KOS_TRIGGER_2		0x00000002
-#define GF_KOS_WPN_REL			0x00000004
-#define GF_KOS_R_SIDE			0x00000008
-#define GF_KOS_PINKIE			0x00000010
-#define GF_KOS_TMS_UP			0x00000020
-#define GF_KOS_TMS_RIGHT		0x00000040
-#define GF_KOS_TMS_DOWN			0x00000080
-#define GF_KOS_TMS_LEFT			0x00000100
-#define GF_KOS_TMS_CENTER		0x00000200
-#define GF_KOS_TRIM_UP			0x00000400
-#define GF_KOS_TRIM_RIGHT		0x00000800
-#define GF_KOS_TRIM_DOWN		0x00001000
-#define GF_KOS_TRIM_LEFT		0x00002000
-#define GF_KOS_TRIM_CENTER		0x00004000
-#define GF_KOS_DMS_UP			0x00008000
-#define GF_KOS_DMS_RIGHT		0x00010000
-#define GF_KOS_DMS_DOWN			0x00020000
-#define GF_KOS_DMS_LEFT			0x00040000
-#define GF_KOS_DMS_CENTER		0x00080000
-#define GF_KOS_THUMB			0x01000000
+#define GF_KOS_POV_1			0x00000001
+#define GF_KOS_POV_2			0x00000002
+#define GF_KOS_POV_3			0x00000004
+#define GF_KOS_POV_4			0x00000008
+#define GF_KOS_TRIGGER_1		0x00000010
+#define GF_KOS_TRIGGER_2		0x00000020
+#define GF_KOS_WPN_REL			0x00000040
+#define GF_KOS_R_SIDE			0x00000080
+#define GF_KOS_PINKIE			0x00000100
+#define GF_KOS_TMS_UP			0x00000200
+#define GF_KOS_TMS_RIGHT		0x00000400
+#define GF_KOS_TMS_DOWN			0x00000800
+#define GF_KOS_TMS_LEFT			0x00001000
+#define GF_KOS_TMS_CENTER		0x00002000
+#define GF_KOS_TRIM_UP			0x00004000
+#define GF_KOS_TRIM_RIGHT		0x00008000
+#define GF_KOS_TRIM_DOWN		0x00010000
+#define GF_KOS_TRIM_LEFT		0x00020000
+#define GF_KOS_TRIM_CENTER		0x00040000
+#define GF_KOS_DMS_UP			0x00080000
+#define GF_KOS_DMS_RIGHT		0x00100000
+#define GF_KOS_DMS_DOWN			0x00200000
+#define GF_KOS_DMS_LEFT			0x00400000
+#define GF_KOS_DMS_CENTER		0x00800000
+#define GF_KOS_THUMB			0x10000000
+
+//-----------------------------------------------------------------------------
+// Gunfighter KG12 physical buttons
+//-----------------------------------------------------------------------------
+#define GF_KG12_POV_1			0x00000001
+#define GF_KG12_POV_2			0x00000002
+#define GF_KG12_POV_3			0x00000004
+#define GF_KG12_POV_4			0x00000008
+#define GF_KG12_TRIGGER			0x00000010
+#define GF_KG12_TOP				0x00000020
+#define GF_KG12_PINKIE			0x00000040
+#define GF_KG12_HAT_UP			0x00000080
+#define GF_KG12_HAT_RIGHT		0x00000100
+#define GF_KG12_HAT_DOWN		0x00000200
+#define GF_KG12_HAT_LEFT		0x00000400
 
 //-----------------------------------------------------------------------------
 // TWCS physical buttons

@@ -109,3 +109,19 @@ private:
 	void UpdateInternal(const STime& time) override;
 	void UpdateLogicalButtonsInternal(int& ctr, const STime& time) override;
 };
+
+//-----------------------------------------------------------------------------
+
+class JoystickMapper : public JoyMapper
+{
+public:
+	JoystickMapper();
+
+private:
+	ButtonThrottle m_buttonThrottle;
+	ButtonAxis m_ButtonAxis;
+	double m_ABDetent;
+
+	void UpdateInternal(const STime& time) override;
+	void UpdateLogicalButtonsInternal(int& ctr, const STime& time) override;
+};

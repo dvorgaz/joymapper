@@ -325,6 +325,27 @@ void JoyMapper::ButtonAxis::CycleValue(bool reverse)
 	valueIdx = (valueIdx + numValues + (reverse ? -1 : 1)) % numValues;
 }
 
+void JoyMapper::ButtonThrottle::Update(const STime& time)
+{
+	double thrDelta = 0;
+	if (dir > 0)
+		thrDelta += speed;
+
+	if (dir < 0)
+		thrDelta -= speed;
+
+	static bool disableDetent = false;
+
+	if (dir > 0 && pressed && fabs(*output - *abDetent) < 0.01)
+		disableDetent = true;
+
+	if (*output < *abDetent)
+		disableDetent = false;
+
+	double maxThr = disableDetent ? 1 : *abDetent;
+	*output = Clamp(*output + thrDelta * time.deltaTime, 0, maxThr);
+}
+
 JoyMapper::JoyMapper()
 {
 	m_Mode = MODE_DEFAULT;
@@ -341,6 +362,10 @@ JoyMapper::JoyMapper()
 	m_MenuActivateBtn2 = JOYPAD_START;
 	m_MenuAcceptBtn = JOYPAD_A;
 	m_MenuCancelBtn = JOYPAD_B;
+	m_MenuUpBtn = JOYPAD_DPAD_UP;
+	m_MenuRightBtn = JOYPAD_DPAD_RIGHT;
+	m_MenuDownBtn = JOYPAD_DPAD_DOWN;
+	m_MenuLeftBtn = JOYPAD_DPAD_LEFT;
 
 	m_PhysAxisX = 0;
 	m_PhysAxisY = 0;
@@ -390,6 +415,9 @@ JoyMapper::JoyMapper()
 	m_VibrationLeft = 0;
 	m_VibrationRight = 0;
 	m_VibrationTime = 0;	
+
+	memset(m_Keys, 0, sizeof(bool) * MAX_KEYS);
+	memset(m_KeysPrev, 0, sizeof(bool) * MAX_KEYS);
 }
 
 void JoyMapper::Init()
@@ -460,6 +488,8 @@ void JoyMapper::Update(const STime& time)
 		UpdateInternal(time);
 		UpdateLogicalButtons(time);
 	}
+
+	memcpy(m_KeysPrev, m_Keys, sizeof(bool) * MAX_KEYS);
 }
 
 void JoyMapper::SetButtons(unsigned long buttons)
@@ -530,6 +560,12 @@ void JoyMapper::SetAxesHID(double x, double y, double z, double rx, double ry, d
 	m_PhysAxisRZ = rz;
 	m_PhysSlider = sl;
 	m_PhysDial = di;	
+}
+
+void JoyMapper::SetKey(unsigned long keyCode, bool down)
+{
+	if (keyCode < MAX_KEYS)
+		m_Keys[keyCode] = down;
 }
 
 long JoyMapper::GetMappedButtons(unsigned int index)
@@ -617,6 +653,30 @@ double JoyMapper::GetAfterburnerDetent()
 		return *m_AfterburnerDetent;
 
 	return 1.0;
+}
+
+bool JoyMapper::GetKey(unsigned long keyCode)
+{
+	if(keyCode < MAX_KEYS)
+		return m_Keys[keyCode];
+
+	return false;
+}
+
+bool JoyMapper::GetKeyDown(unsigned long keyCode)
+{
+	if (keyCode < MAX_KEYS)
+		return !m_KeysPrev[keyCode] && m_Keys[keyCode];
+
+	return false;
+}
+
+bool JoyMapper::GetKeyUp(unsigned long keyCode)
+{
+	return false; if (keyCode < MAX_KEYS)
+		return m_KeysPrev[keyCode] && !m_Keys[keyCode];
+
+	return false;
 }
 
 void JoyMapper::SetLogicalButton(int index, bool on)
@@ -741,10 +801,10 @@ void JoyMapper::UpdateMenu(const STime& time)
 		}
 	}
 
-	if (BTNPRESSED(JOYPAD_DPAD_RIGHT) | BTNPRESSED(JOYPAD_DPAD_DOWN))
+	if (BTNPRESSED(m_MenuRightBtn) | BTNPRESSED(m_MenuDownBtn))
 		m_MenuIdx = (m_MenuIdx + 1) % m_MenuOptions.size();
 
-	if (BTNPRESSED(JOYPAD_DPAD_LEFT) | BTNPRESSED(JOYPAD_DPAD_UP))
+	if (BTNPRESSED(m_MenuLeftBtn) | BTNPRESSED(m_MenuUpBtn))
 		m_MenuIdx = (m_MenuIdx - 1 + m_MenuOptions.size()) % m_MenuOptions.size();
 }
 
@@ -773,7 +833,7 @@ void JoyMapper::HandleMouse(const Stick& stick, unsigned long btnLeft, unsigned 
 {
 	SetCursorPosition(stick.X, stick.Y);
 
-	if (BTNPRESSED(btnLeft))	MouseButton(LMB_DOWN);
+	if (BTNPRESSED(btnLeft))	MouseButton(LMB_DOWN); 
 	if (BTNRELEASED(btnLeft))	MouseButton(LMB_UP);
 	if (BTNPRESSED(btnRight))	MouseButton(RMB_DOWN);
 	if (BTNRELEASED(btnRight))	MouseButton(RMB_UP);

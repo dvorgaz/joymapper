@@ -56,12 +56,13 @@ void MsgBox(HWND hWnd, const char* str, ...);
 
 #define XBOXCONTROLLER	L"Controller (Xbox One For Windows)"
 #define VKBSTICK		L" VKB-Sim Space Gunfighter "
+#define VKBKG12			L" VKB-Sim Gunfighter Vintage "
 #define TWCSTHROTTLE	L"TWCS Throttle"
 
 JOYSTICK_POSITION_V2 iReport; // The structure that holds the full position data
 JOYSTICK_POSITION_V2 iReportEx;
 
-#define MAPPER_TYPE HotasMapper //AlternateMapper_2// DefaultMapper
+#define MAPPER_TYPE JoystickMapper //AlternateMapper_2// DefaultMapper
 //
 // Global variables
 //
@@ -348,8 +349,8 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			//
 			// Register for joystick devices
 			//
-
-			RAWINPUTDEVICE rid[2];
+			const UINT numDevices = 3;
+			RAWINPUTDEVICE rid[numDevices];
 			rid[0].usUsagePage = 1;
 			rid[0].usUsage = 5;	// Gamepad - e.g. XBox 360 or XBox One controllers
 			rid[0].dwFlags = RIDEV_INPUTSINK; // Recieve messages when in background.
@@ -360,7 +361,12 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			rid[1].dwFlags = RIDEV_INPUTSINK; // Recieve messages when in background.
 			rid[1].hwndTarget = hWnd;
 
-			if(!RegisterRawInputDevices(rid, 2, sizeof(RAWINPUTDEVICE)))
+			rid[2].usUsagePage = 1;
+			rid[2].usUsage = 6;	// Keyboard
+			rid[2].dwFlags = RIDEV_INPUTSINK; // Recieve messages when in background.
+			rid[2].hwndTarget = hWnd;
+
+			if(!RegisterRawInputDevices(rid, numDevices, sizeof(RAWINPUTDEVICE)))
 				return -1;
 		}
 		return 0;
@@ -383,7 +389,19 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				return 0;
 
 			GetRawInputData((HRAWINPUT)lParam, RID_INPUT, pRawInput, &bufferSize, sizeof(RAWINPUTHEADER));
-			ParseRawInput(pRawInput);
+
+			switch (pRawInput->header.dwType)
+			{
+				case RIM_TYPEHID:
+					ParseRawInput(pRawInput);
+					break;
+				case RIM_TYPEKEYBOARD:
+				{
+					UINT msg = pRawInput->data.keyboard.Message;
+					g_Mapper->SetKey(pRawInput->data.keyboard.VKey, msg == WM_KEYDOWN || msg == WM_SYSKEYDOWN);
+				}
+					break;
+			}
 
 			HeapFree(hHeap, 0, pRawInput);
 		}
@@ -618,7 +636,7 @@ void HandleController(const STime& time)
 		if (btnShare) gamepad.wButtons |= JOYPAD_SHARE;
 	}
 
-	SetMapperData(g_Mapper, GetDevice(VKBSTICK));
+	SetMapperData(g_Mapper, GetDevice(VKBKG12));
 	//g_Mapper->SetButtons(gamepad.wButtons);
 	//g_Mapper->SetAxesXInput(gamepad.sThumbLX, gamepad.sThumbLY, gamepad.bLeftTrigger, gamepad.sThumbRX, gamepad.sThumbRY, gamepad.bRightTrigger);
 	g_Mapper->Update(time);
@@ -714,7 +732,7 @@ void SetupCalibrations()
 	wcscpy(vkbCalib.productString , VKBSTICK);
 
 	vkbCalib.rangeAxisX = 4096;
-	vkbCalib.rangeAxisY = 4096;
+	vkbCalib.rangeAxisY = -4096;
 	vkbCalib.rangeAxisZ = 2048;
 	vkbCalib.rangeAxisRz = 2048;
 
@@ -725,6 +743,18 @@ void SetupCalibrations()
 
 	g_Calibrations.push_back(vkbCalib);
 
+	DeviceCalibrationData vkbKg12Calib = { 0 };
+	wcscpy(vkbKg12Calib.productString, VKBKG12);
+
+	vkbKg12Calib.rangeAxisX = 4096;
+	vkbKg12Calib.rangeAxisY = -4096;
+	vkbKg12Calib.rangeAxisZ = 2048;
+
+	vkbKg12Calib.centerAxisX = true;
+	vkbKg12Calib.centerAxisY = true;
+	vkbKg12Calib.centerAxisZ = true;
+
+	g_Calibrations.push_back(vkbKg12Calib);
 
 	DeviceCalibrationData twcsCalib = { 0 };
 	wcscpy(twcsCalib.productString, TWCSTHROTTLE);
