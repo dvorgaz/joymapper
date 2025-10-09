@@ -109,18 +109,3 @@ private:
 	void UpdateInternal(const STime& time) override;
 	void UpdateLogicalButtonsInternal(int& ctr, const STime& time) override;
 };
-
-//-----------------------------------------------------------------------------
-
-class PedalMapper : public JoyMapper
-{
-public:
-	PedalMapper();
-
-private:
-	ButtonAxis m_ButtonAxis;
-	double m_ABDetent;
-
-	void UpdateInternal(const STime& time) override;
-	void UpdateLogicalButtonsInternal(int& ctr, const STime& time) override;
-};

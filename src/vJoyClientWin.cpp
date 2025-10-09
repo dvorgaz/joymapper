@@ -57,7 +57,6 @@ void MsgBox(HWND hWnd, const char* str, ...);
 #define XBOXCONTROLLER	L"Controller (Xbox One For Windows)"
 #define VKBSTICK		L" VKB-Sim Space Gunfighter "
 #define TWCSTHROTTLE	L"TWCS Throttle"
-#define TM_T128			L"B696"
 
 JOYSTICK_POSITION_V2 iReport; // The structure that holds the full position data
 JOYSTICK_POSITION_V2 iReportEx;
@@ -741,17 +740,6 @@ void SetupCalibrations()
 	twcsCalib.centerAxisRz = true;
 
 	g_Calibrations.push_back(twcsCalib);
-
-	//DeviceCalibrationData tmt128Calib = { 0 };
-	//wcscpy(twcsCalib.productString, TM_T128);
-
-	//twcsCalib.rangeAxisY = 1024;
-	//twcsCalib.rangeAxisRz = 1024;
-
-	//twcsCalib.centerAxisY = false;
-	//twcsCalib.centerAxisRz = false;
-
-	//g_Calibrations.push_back(twcsCalib);
 }
 
 double AxisRemap(long input, long range, bool centering)
