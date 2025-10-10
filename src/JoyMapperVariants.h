@@ -120,6 +120,7 @@ public:
 private:
 	ButtonThrottle m_buttonThrottle;
 	ButtonAxis m_ButtonAxis;
+	ButtonAxis m_WheelBrakeAxis;
 	double m_ABDetent;
 
 	void UpdateInternal(const STime& time) override;

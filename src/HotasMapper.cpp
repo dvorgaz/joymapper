@@ -193,56 +193,66 @@ JoystickMapper::JoystickMapper()
 
 	m_ButtonAxis = { 0 };
 	m_ButtonAxis.output = &m_Dial;
-	m_ButtonAxis.AddValue(0.65).AddValue(0.15).AddValue(0.0);	
+	m_ButtonAxis.AddValue(0.65).AddValue(0.15);	
+
+	m_WheelBrakeAxis = { 0 };
+	m_WheelBrakeAxis.output = &m_AxisRZ;
+	m_WheelBrakeAxis.AddValue(0.0).AddValue(1.0);
+	m_WheelBrakeAxis.speedModifier = -1.0;
 }
 
 void JoystickMapper::UpdateInternal(const STime& time)
 {
 	bool modifierOn = GetKey(VK_SHIFT) || GetKey(VK_CONTROL) || GetKey(VK_MENU) || GetKey(VK_LWIN) || GetKey(VK_RWIN);
 
-	// Rudder
-	m_AxisZ = m_PhysAxisZ;	
+	const unsigned long throttleUpKey = 'X';
+	const unsigned long throttleDownKey = 'Y';
+	const unsigned long mouseModeKey = VK_TAB;
+	const unsigned long zoomKey = VK_SPACE;
 
-	// Zoom
-	const unsigned long zoomBtn = GF_KG12_PINKIE;// GF_KOS_TRIM_CENTER;
-	static int prevZoomIdx = 0;
+	if (modifierOn)
+	{
+		m_Mode = MODE_DEFAULT;
+	}
+	else
+	{
+		m_Mode = GetKey(zoomKey) ? MODE_LEFT_MOD : (GetKey(mouseModeKey) ? MODE_MOUSE : MODE_DEFAULT);
+	}
+
+	// Rudder
+	m_AxisZ = m_PhysAxisZ;		
 
 	if (!modifierOn)
 	{
-		if (BTNRELEASED(zoomBtn) && time.time - BTNTIME(zoomBtn) < TEMPO_TIME)
+		// Zoom
+		static double zoomBtnTime = time.time;
+		if (GetKeyUp(zoomKey) && time.time - zoomBtnTime < TEMPO_TIME)
 		{
-			switch (m_ButtonAxis.valueIdx)
-			{
-			case 2:
-				m_ButtonAxis.valueIdx = prevZoomIdx;
-				break;
-			case 1:
-				m_ButtonAxis.valueIdx = 0;
-				break;
-			case 0:
-				m_ButtonAxis.valueIdx = 1;
-				break;
-			}
-
-			prevZoomIdx = m_ButtonAxis.valueIdx;
+			m_ButtonAxis.CycleValue();
 		}
-		else if (BTNDOWN(zoomBtn) && time.time - BTNTIME(zoomBtn) >= TEMPO_TIME)
+		else if (GetKeyDown(zoomKey))
 		{
-			m_ButtonAxis.valueIdx = 2;
+			zoomBtnTime = time.time;
+		}
+
+		// Wheel brake
+		if (GetKey(VK_OEM_102))
+		{
+			m_WheelBrakeAxis.MoveTowardNextValue();
 		}
 	}
 
 	m_ButtonAxis.Update(time);
+	m_WheelBrakeAxis.Update(time);
 
 	if (!modifierOn)
 	{
-		int dir = (GetKey(VK_UP) ? 1 : 0) + (GetKey(VK_DOWN) ? -1 : 0);
-		m_buttonThrottle.dir = dir;
-		m_buttonThrottle.pressed = GetKeyDown(VK_UP);
+		m_buttonThrottle.dir = (GetKey(throttleUpKey) ? 1 : 0) + (GetKey(throttleDownKey) ? -1 : 0);
+		m_buttonThrottle.pressed = GetKeyDown(throttleUpKey);
 		m_buttonThrottle.Update(time);
-	}
+	}	
 
-	if(GetKey(VK_CONTROL) && GetKey(VK_SPACE))
+	if(m_Mode == MODE_MOUSE)
 	{
 		HandleMouse(m_LStick);
 	}
@@ -266,7 +276,7 @@ void JoystickMapper::UpdateLogicalButtonsInternal(int& ctr, const STime& time)
 		bool enabled = m_Mode == (Mode)i;
 		auto IsMode = [i](unsigned char flags) { return FLAG(i) & flags; };
 
-		if (IsMode(FLAG(MODE_DEFAULT)))
+		if (IsMode(FLAG(MODE_DEFAULT) | FLAG(MODE_LEFT_MOD)))
 		{
 #ifdef USE_KG12
 			SetLogicalButton(ctr++, enabled && BtnDown(GF_KG12_TRIGGER));

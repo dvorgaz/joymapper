@@ -29,7 +29,7 @@
 #define VIEW_CENTERING_TIME		1.0
 #define ABSOLUTE_VIEW_SPEED		10.0
 
-#define MOUSE_CURSOR_RADIUS		0.7
+#define MOUSE_CURSOR_RADIUS		0.9
 #define MOUSE_VIEW_THRESHOLD	0.5
 #define MOUSE_VIEW_SPEED		0.4
 
@@ -68,7 +68,7 @@ int GetShiftAmount(unsigned long flag);
 #define MAX_SPECIAL_BUTTONS		10
 #define NUM_MOUSE_BUTTONS		4
 #define MAX_BUTTON_ON_AXIS		3
-#define MAX_KEYS				170
+#define MAX_KEYS				245
 
 #define M_PI 3.14159265358979323846
 
@@ -214,10 +214,13 @@ protected:
 		double values[MAX_BUTTON_ON_AXIS];
 		int numValues;
 		int valueIdx;
+		bool moveToNext;
+		double speedModifier;
 
 		ButtonAxis& AddValue(double value);
 		void Update(const STime& time);
 		void CycleValue(bool reverse = false);
+		void MoveTowardNextValue();
 	};
 
 	struct ButtonThrottle

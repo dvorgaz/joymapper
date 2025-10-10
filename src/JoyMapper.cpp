@@ -317,12 +317,25 @@ JoyMapper::ButtonAxis& JoyMapper::ButtonAxis::AddValue(double value)
 
 void JoyMapper::ButtonAxis::Update(const STime& time)
 {
-	*output = MoveTo(*output, values[valueIdx], time.deltaTime * SLIDER_FOLLOW_SPEED);
+	int targetIdx = valueIdx;
+
+	if (moveToNext)
+	{
+		targetIdx = ++targetIdx % numValues;
+		moveToNext = false;
+	}
+
+	*output = MoveTo(*output, values[targetIdx], time.deltaTime * (SLIDER_FOLLOW_SPEED + speedModifier));
 }
 
 void JoyMapper::ButtonAxis::CycleValue(bool reverse)
 {
 	valueIdx = (valueIdx + numValues + (reverse ? -1 : 1)) % numValues;
+}
+
+void JoyMapper::ButtonAxis::MoveTowardNextValue()
+{
+	moveToNext = true;
 }
 
 void JoyMapper::ButtonThrottle::Update(const STime& time)
@@ -673,7 +686,7 @@ bool JoyMapper::GetKeyDown(unsigned long keyCode)
 
 bool JoyMapper::GetKeyUp(unsigned long keyCode)
 {
-	return false; if (keyCode < MAX_KEYS)
+	if (keyCode < MAX_KEYS)
 		return m_KeysPrev[keyCode] && !m_Keys[keyCode];
 
 	return false;

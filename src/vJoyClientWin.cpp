@@ -101,6 +101,8 @@ struct DeviceCalibrationData
 {
 	wchar_t productString[126];
 
+	int numHats;
+
 	// Range of axis values
 	LONG rangeAxisX;
 	LONG rangeAxisY;
@@ -730,6 +732,7 @@ void SetupCalibrations()
 {
 	DeviceCalibrationData vkbCalib = { 0 };
 	wcscpy(vkbCalib.productString , VKBSTICK);
+	vkbCalib.numHats = 0;
 
 	vkbCalib.rangeAxisX = 4096;
 	vkbCalib.rangeAxisY = -4096;
@@ -745,6 +748,7 @@ void SetupCalibrations()
 
 	DeviceCalibrationData vkbKg12Calib = { 0 };
 	wcscpy(vkbKg12Calib.productString, VKBKG12);
+	vkbKg12Calib.numHats = 0;
 
 	vkbKg12Calib.rangeAxisX = 4096;
 	vkbKg12Calib.rangeAxisY = -4096;
@@ -758,6 +762,7 @@ void SetupCalibrations()
 
 	DeviceCalibrationData twcsCalib = { 0 };
 	wcscpy(twcsCalib.productString, TWCSTHROTTLE);
+	twcsCalib.numHats = 1;
 
 	twcsCalib.rangeAxisX = 1024;
 	twcsCalib.rangeAxisY = -1024;
@@ -785,21 +790,16 @@ double AxisRemap(long input, long range, bool centering)
 void SetMapperData(JoyMapper* mapper, DeviceData* deviceData)
 {
 	if (deviceData == NULL)
-		return;
+		return;	
 
 	unsigned long buttons = 0;
-
-	for (int i = 0; i < sizeof(long) * 8 && i < deviceData->NumberOfButtons; ++i)
-	{
-		if (deviceData->bButtonStates[i])
-			buttons |= 1 << i;
-	}
-
-	mapper->SetButtonsPov(buttons, deviceData->lHat);
+	int numHats = 0;
 
 	if (deviceData->calibration != NULL)
 	{
 		DeviceCalibrationData* cd = deviceData->calibration;
+		numHats = cd->numHats;
+
 		mapper->SetAxesHID(
 			AxisRemap(deviceData->lAxisX, cd->rangeAxisX, cd->centerAxisX),
 			AxisRemap(deviceData->lAxisY, cd->rangeAxisY, cd->centerAxisY),
@@ -824,4 +824,12 @@ void SetMapperData(JoyMapper* mapper, DeviceData* deviceData)
 			AxisRemap(deviceData->lDial, 65535, false)
 		);
 	}
+
+	for (int i = 0; i < sizeof(long) * 8 && i < deviceData->NumberOfButtons; ++i)
+	{
+		if (deviceData->bButtonStates[i])
+			buttons |= 1 << i;
+	}
+
+	mapper->SetButtonsPov(buttons, numHats > 0 ? deviceData->lHat : 8);
 }
