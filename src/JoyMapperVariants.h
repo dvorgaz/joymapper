@@ -126,3 +126,20 @@ private:
 	void UpdateInternal(const STime& time) override;
 	void UpdateLogicalButtonsInternal(int& ctr, const STime& time) override;
 };
+
+//-----------------------------------------------------------------------------
+
+class BMSMapper : public JoyMapper
+{
+public:
+	BMSMapper();
+
+private:
+	ButtonThrottle m_buttonThrottle;
+	ButtonAxis m_ButtonZoom;
+	ButtonAxis m_WheelBrakeAxis;
+	double m_ABDetent;
+
+	void UpdateInternal(const STime& time) override;
+	void UpdateLogicalButtonsInternal(int& ctr, const STime& time) override;
+};

@@ -62,7 +62,11 @@ void MsgBox(HWND hWnd, const char* str, ...);
 JOYSTICK_POSITION_V2 iReport; // The structure that holds the full position data
 JOYSTICK_POSITION_V2 iReportEx;
 
-#define MAPPER_TYPE JoystickMapper //AlternateMapper_2// DefaultMapper
+//#define MAPPER_TYPE DefaultMapper
+//#define MAPPER_TYPE AlternateMapper_2
+#define MAPPER_TYPE JoystickMapper
+//#define MAPPER_TYPE BMSMapper
+
 //
 // Global variables
 //
