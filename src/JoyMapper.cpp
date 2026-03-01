@@ -431,6 +431,13 @@ JoyMapper::JoyMapper()
 
 	memset(m_Keys, 0, sizeof(bool) * MAX_KEYS);
 	memset(m_KeysPrev, 0, sizeof(bool) * MAX_KEYS);
+
+	m_mouseDeltaX = 0;
+	m_mouseDeltaY = 0;
+	m_mouseExBtn1 = false;
+	m_mouseExBtn2 = false;
+	m_mouseExBtn1_prev = false;
+	m_mouseExBtn2_prev = false;
 }
 
 void JoyMapper::Init()
@@ -579,6 +586,18 @@ void JoyMapper::SetKey(unsigned long keyCode, bool down)
 {
 	if (keyCode < MAX_KEYS)
 		m_Keys[keyCode] = down;
+}
+
+void JoyMapper::SetMouse(long dX, long dY, bool btn1, bool btn2)
+{
+	m_mouseDeltaX = dX;
+	m_mouseDeltaY = dY;
+
+	m_mouseExBtn1_prev = m_mouseExBtn1;
+	m_mouseExBtn1 = btn1;
+
+	m_mouseExBtn2_prev = m_mouseExBtn2;
+	m_mouseExBtn2 = btn2;
 }
 
 long JoyMapper::GetMappedButtons(unsigned int index)

@@ -312,6 +312,13 @@ protected:
 	bool m_Keys[MAX_KEYS];
 	bool m_KeysPrev[MAX_KEYS];
 
+	long m_mouseDeltaX;
+	long m_mouseDeltaY;
+	bool m_mouseExBtn1;
+	bool m_mouseExBtn2;
+	bool m_mouseExBtn1_prev;
+	bool m_mouseExBtn2_prev;
+
 	void SetLogicalButton(int index, bool on);
 	void UpdateLogicalButtons(const STime& time);
 	int UpdateSpecialButton(SpecialButton& btnSpec, const STime& time);
@@ -346,6 +353,7 @@ public:
 	void SetAxesXInput(long x, long y, long z, long rx, long ry, long rz);
 	void SetAxesHID(double x, double y, double z, double rx, double ry, double rz, double sl, double di);
 	void SetKey(unsigned long keyCode, bool down);
+	void SetMouse(long dX, long dY, bool btn1, bool btn2);
 
 	long GetMappedButtons(unsigned int index);
 	unsigned long GetMappedPov(unsigned int index);

@@ -87,6 +87,13 @@ COLORREF g_TransparentColor = RGB(0, 255, 0);
 LARGE_INTEGER StartTime, LastTime, CurrentTime, ElapsedMicroseconds;
 LARGE_INTEGER Frequency;
 
+long g_mouseAbsoluteX = 0;
+long g_mouseAbsoluteY = 0;
+long g_mouseDeltaX = 0;
+long g_mouseDeltaY = 0;
+bool g_mouseExBtn1 = false;
+bool g_mouseExBtn2 = false;
+
 WORD btnCodeConversion[] = {
 	JOYPAD_A,
 	JOYPAD_B,
@@ -346,6 +353,56 @@ Error:
 	SAFE_FREE(pValueCaps);
 }
 
+void ParseRawMouse(PRAWINPUT pRawInput)
+{
+	RAWMOUSE& mouse = pRawInput->data.mouse;
+
+	if (mouse.usFlags & MOUSE_MOVE_ABSOLUTE)
+	{
+		RECT rect;
+		if (mouse.usFlags & MOUSE_VIRTUAL_DESKTOP)
+		{
+			rect.left = GetSystemMetrics(SM_XVIRTUALSCREEN);
+			rect.top = GetSystemMetrics(SM_YVIRTUALSCREEN);
+			rect.right = GetSystemMetrics(SM_CXVIRTUALSCREEN);
+			rect.bottom = GetSystemMetrics(SM_CYVIRTUALSCREEN);
+		}
+		else
+		{
+			rect.left = 0;
+			rect.top = 0;
+			rect.right = GetSystemMetrics(SM_CXSCREEN);
+			rect.bottom = GetSystemMetrics(SM_CYSCREEN);
+		}
+
+		int absoluteX = MulDiv(mouse.lLastX, rect.right, USHRT_MAX) + rect.left;
+		int absoluteY = MulDiv(mouse.lLastY, rect.bottom, USHRT_MAX) + rect.top;
+
+		g_mouseDeltaX += absoluteX - g_mouseAbsoluteX;
+		g_mouseDeltaY += absoluteY - g_mouseAbsoluteY;
+
+		g_mouseAbsoluteX = absoluteX;
+		g_mouseAbsoluteY = absoluteY;
+	}
+	else if (mouse.lLastX != 0 || mouse.lLastY != 0)
+	{
+		g_mouseDeltaX += mouse.lLastX;
+		g_mouseDeltaY += mouse.lLastY;
+	}
+
+	if (mouse.usButtonFlags & RI_MOUSE_BUTTON_4_DOWN)
+		g_mouseExBtn1 = true;
+
+	if (mouse.usButtonFlags & RI_MOUSE_BUTTON_4_UP)
+		g_mouseExBtn1 = false;
+
+	if (mouse.usButtonFlags & RI_MOUSE_BUTTON_5_DOWN)
+		g_mouseExBtn2 = true;
+
+	if (mouse.usButtonFlags & RI_MOUSE_BUTTON_5_UP)
+		g_mouseExBtn2 = false;
+}
+
 LRESULT CALLBACK WindowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	switch(msg)
@@ -355,7 +412,7 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			//
 			// Register for joystick devices
 			//
-			const UINT numDevices = 3;
+			const UINT numDevices = 4;
 			RAWINPUTDEVICE rid[numDevices];
 			rid[0].usUsagePage = 1;
 			rid[0].usUsage = 5;	// Gamepad - e.g. XBox 360 or XBox One controllers
@@ -371,6 +428,11 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			rid[2].usUsage = 6;	// Keyboard
 			rid[2].dwFlags = RIDEV_INPUTSINK; // Recieve messages when in background.
 			rid[2].hwndTarget = hWnd;
+
+			rid[3].usUsagePage = 1;
+			rid[3].usUsage = 2;	// Mouse
+			rid[3].dwFlags = RIDEV_INPUTSINK; // Recieve messages when in background.
+			rid[3].hwndTarget = hWnd;
 
 			if(!RegisterRawInputDevices(rid, numDevices, sizeof(RAWINPUTDEVICE)))
 				return -1;
@@ -406,6 +468,9 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					UINT msg = pRawInput->data.keyboard.Message;
 					g_Mapper->SetKey(pRawInput->data.keyboard.VKey, msg == WM_KEYDOWN || msg == WM_SYSKEYDOWN);
 				}
+					break;
+				case RIM_TYPEMOUSE:
+					ParseRawMouse(pRawInput);
 					break;
 			}
 
@@ -645,7 +710,11 @@ void HandleController(const STime& time)
 	SetMapperData(g_Mapper, GetDevice(VKBKG12));
 	//g_Mapper->SetButtons(gamepad.wButtons);
 	//g_Mapper->SetAxesXInput(gamepad.sThumbLX, gamepad.sThumbLY, gamepad.bLeftTrigger, gamepad.sThumbRX, gamepad.sThumbRY, gamepad.bRightTrigger);
+	g_Mapper->SetMouse(g_mouseDeltaX, g_mouseDeltaY, g_mouseExBtn1, g_mouseExBtn2);
 	g_Mapper->Update(time);
+
+	g_mouseDeltaX = 0;
+	g_mouseDeltaY = 0;
 
 	// Set destination vJoy device
 	id = (BYTE)DevID_1;

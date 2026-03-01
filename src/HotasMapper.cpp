@@ -252,6 +252,11 @@ void JoystickMapper::UpdateInternal(const STime& time)
 		m_buttonThrottle.Update(time);
 	}	
 
+	if (m_mouseExBtn1)
+	{
+		m_Slider = Clamp(m_Slider + ((double)m_mouseDeltaY * -0.001), 0, 1);
+	}
+
 	if(m_Mode == MODE_MOUSE)
 	{
 		HandleMouse(m_LStick);
