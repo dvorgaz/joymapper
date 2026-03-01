@@ -64,8 +64,9 @@ JOYSTICK_POSITION_V2 iReportEx;
 
 //#define MAPPER_TYPE DefaultMapper
 //#define MAPPER_TYPE AlternateMapper_2
-#define MAPPER_TYPE JoystickMapper
+//#define MAPPER_TYPE JoystickMapper
 //#define MAPPER_TYPE BMSMapper
+#define MAPPER_TYPE MouseThrottleMapper
 
 //
 // Global variables

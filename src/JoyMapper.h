@@ -48,6 +48,9 @@
 #define BTNRELEASED(btn) ((m_JoyButtonsPrev & btn) && !(m_JoyButtons & btn))
 #define BTNTIME(btn) m_ButtonPressedTime[GetShiftAmount(btn)]
 #define FLAG(a) (1 << a)
+#define MOUSEDOWN(btn) (m_mouseExBtn[btn])
+#define MOUSEPRESSED(btn) (!m_mouseExBtn_prev[btn] && m_mouseExBtn[btn])
+#define MOUSERELEASED(btn) (m_mouseExBtn_prev[btn] && !m_mouseExBtn[btn])
 
 //-----------------------------------------------------------------------------
 // Helper functions
@@ -314,10 +317,8 @@ protected:
 
 	long m_mouseDeltaX;
 	long m_mouseDeltaY;
-	bool m_mouseExBtn1;
-	bool m_mouseExBtn2;
-	bool m_mouseExBtn1_prev;
-	bool m_mouseExBtn2_prev;
+	bool m_mouseExBtn[2];
+	bool m_mouseExBtn_prev[2];
 
 	void SetLogicalButton(int index, bool on);
 	void UpdateLogicalButtons(const STime& time);
