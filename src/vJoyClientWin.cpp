@@ -628,7 +628,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			HandleController(time);
 			g_MapperRenderer.Update(time);
 
-			renderTime -= time.time;
+			renderTime -= time.deltaTime;
 			if (renderTime <= 0)
 			{
 				g_RenderDevice.Render();
@@ -714,7 +714,7 @@ void HandleController(const STime& time)
 		if (btnShare) gamepad.wButtons |= JOYPAD_SHARE;
 	}
 
-	SetMapperData(g_Mapper, GetDevice(VKBKG12));
+	SetMapperData(g_Mapper, GetDevice(VKBSTICK));
 	//g_Mapper->SetButtons(gamepad.wButtons);
 	//g_Mapper->SetAxesXInput(gamepad.sThumbLX, gamepad.sThumbLY, gamepad.bLeftTrigger, gamepad.sThumbRX, gamepad.sThumbRY, gamepad.bRightTrigger);
 	g_Mapper->SetMouse(g_mouseDeltaX, g_mouseDeltaY, g_mouseExBtn1, g_mouseExBtn2);

@@ -151,7 +151,7 @@ void HotasMapper::UpdateLogicalButtonsInternal(int& ctr, const STime& time)
 
 //-----------------------------------------------------------------------------
 
-#define USE_KG12
+//#define USE_KG12
 
 JoystickMapper::JoystickMapper()
 {
