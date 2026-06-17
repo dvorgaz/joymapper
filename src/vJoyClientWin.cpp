@@ -54,6 +54,8 @@ void MsgBox(HWND hWnd, const char* str, ...);
 #define DEV_ID_1	1
 #define DEV_ID_2	2
 
+//#define USE_SECOND_VJOY
+
 #define XBOXCONTROLLER	L"Controller (Xbox One For Windows)"
 #define VKBSTICK		L" VKB-Sim Space Gunfighter "
 #define VKBKG12			L" VKB-Sim Gunfighter Vintage "
@@ -576,8 +578,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	if(!InitJoyDevice(DevID_1))
 		goto Exit;
 
+#ifdef USE_SECOND_VJOY
 	if (!InitJoyDevice(DevID_2))
 		goto Exit;
+#endif
 
 	g_Mapper = new MAPPER_TYPE();
 	g_Mapper->Init();
@@ -639,7 +643,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 Exit:
 	RelinquishVJD(DevID_1);
+#ifdef USE_SECOND_VJOY
 	RelinquishVJD(DevID_2);
+#endif
 	g_RenderDevice.CleanupDevice();
 	return (int)msg.wParam;
 }
@@ -757,7 +763,9 @@ void HandleController(const STime& time)
 
 	// Send position data to vJoy device
 	UpdateJoyDevice(DevID_1, iReport);
+#ifdef USE_SECOND_VJOY
 	UpdateJoyDevice(DevID_2, iReportEx);
+#endif
 
 	WORD left, right;
 	g_Mapper->GetVibration(left, right);
