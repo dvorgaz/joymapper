@@ -155,6 +155,7 @@ private:
 	ButtonAxis m_ButtonAxis;
 	ButtonAxis m_WheelBrakeAxis;
 	double m_ABDetent;
+	double m_mouseAxisY;
 
 	void UpdateInternal(const STime& time) override;
 	void UpdateLogicalButtonsInternal(int& ctr, const STime& time) override;

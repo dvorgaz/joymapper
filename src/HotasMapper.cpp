@@ -536,6 +536,7 @@ MouseThrottleMapper::MouseThrottleMapper()
 {
 	m_ABDetent = 0.8;
 	m_AfterburnerDetent = &m_ABDetent;
+	m_mouseAxisY = 0.0;
 
 #ifdef USE_KG12
 	m_MenuActivateBtn1 = GF_KG12_HAT_UP;
@@ -592,14 +593,9 @@ void MouseThrottleMapper::UpdateInternal(const STime& time)
 	static double leftModTime = time.time;
 	static double rightModTime = time.time;
 
-	static bool disableDetent = false;
-
 	if (MOUSEPRESSED(0))
 	{
 		leftModTime = time.time;
-
-		if (fabs(m_Slider - m_ABDetent) < 0.01)
-			disableDetent = true;
 	}
 	else if (MOUSERELEASED(0) && time.time - leftModTime < TEMPO_TIME)
 	{
@@ -626,11 +622,8 @@ void MouseThrottleMapper::UpdateInternal(const STime& time)
 
 		// Throttle
 		const double throttleSensitivity = 0.001;
-		double prevThrottle = m_Slider;
-		m_Slider = Clamp(m_Slider + ((double)m_mouseDeltaY * -throttleSensitivity), 0, disableDetent ? 1 : m_ABDetent);
-
-		if (m_Slider < prevThrottle && m_Slider < m_ABDetent)
-			disableDetent = false;
+		m_mouseAxisY = Clamp(m_mouseAxisY + ((double)m_mouseDeltaY * -throttleSensitivity), 0, 1);
+		m_Slider = ApplyDeadzoneRegion(m_mouseAxisY, m_ABDetent, 0.15);
 	}
 
 	if (m_Mode == MODE_RIGHT_MOD)
@@ -642,8 +635,8 @@ void MouseThrottleMapper::UpdateInternal(const STime& time)
 	}
 	else
 	{
-		m_AxisRX = 0;
-		m_AxisRY = 0;
+		m_AxisRX = MoveTo(m_AxisRX, 0, time.deltaTime * (SLIDER_FOLLOW_SPEED));
+		m_AxisRY = MoveTo(m_AxisRY, 0, time.deltaTime * (SLIDER_FOLLOW_SPEED));
 	}
 
 	m_ButtonAxis.Update(time);
@@ -655,6 +648,8 @@ void MouseThrottleMapper::UpdateInternal(const STime& time)
 
 	// Rudder
 	m_AxisZ = m_PhysAxisZ;
+	//m_AxisRZ = m_PhysAxisZ;
+	//m_AxisZ = m_Slider;
 }
 
 void MouseThrottleMapper::UpdateLogicalButtonsInternal(int& ctr, const STime& time)
