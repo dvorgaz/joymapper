@@ -85,3 +85,15 @@
 #define TWCS_CASTLESW_FORWARD	0x00008000
 #define TWCS_CASTLESW_DOWN		0x00010000
 #define TWCS_CASTLESW_AFT		0x00020000
+
+//-----------------------------------------------------------------------------
+// Hardware defines
+//-----------------------------------------------------------------------------
+#define XBOXCONTROLLER	L"Controller (Xbox One For Windows)"
+#define VKBSTICK		L" VKB-Sim Space Gunfighter "
+#define VKBKG12			L" VKB-Sim Gunfighter Vintage "
+#define TWCSTHROTTLE	L"TWCS Throttle"
+
+#define USE_SECOND_VJOY 0
+#define USE_PEDALS 0
+#define USE_KG12 0

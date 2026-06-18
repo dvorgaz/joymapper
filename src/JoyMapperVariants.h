@@ -148,14 +148,28 @@ private:
 
 class MouseThrottleMapper : public JoyMapper
 {
+	enum AxisMode
+	{
+		AM_NONE,
+		AM_THROTTLE,
+		AM_ZOOM
+	};
+
 public:
 	MouseThrottleMapper();
 
 private:
+	Stick m_MouseStick;
 	ButtonAxis m_ButtonAxis;
 	ButtonAxis m_WheelBrakeAxis;
 	double m_ABDetent;
+	double m_mouseAxisX;
 	double m_mouseAxisY;
+	AxisMode m_axisMode;
+	long m_deltaX;
+	long m_deltaY;
+	long m_ScreenWidth;
+	long m_ScreenHeight;
 
 	void UpdateInternal(const STime& time) override;
 	void UpdateLogicalButtonsInternal(int& ctr, const STime& time) override;

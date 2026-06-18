@@ -284,6 +284,7 @@
     <ClCompile Include="JoyMapper.cpp" />
     <ClCompile Include="JoyMapperRenderer.cpp" />
     <ClCompile Include="JoyMapperVariants.cpp" />
+    <ClCompile Include="MouseThrottleMapper.cpp" />
     <ClCompile Include="RenderDevice.cpp" />
     <ClCompile Include="vJoyClientWin.cpp" />
   </ItemGroup>

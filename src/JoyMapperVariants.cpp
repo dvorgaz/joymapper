@@ -3,8 +3,6 @@
 #include "stdafx.h"
 #include "Math.h"
 
-#define USE_PEDALS 0
-
 DefaultMapper::DefaultMapper()
 {
 	m_StickSlider = { 0 };

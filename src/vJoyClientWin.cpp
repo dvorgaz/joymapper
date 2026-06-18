@@ -54,13 +54,6 @@ void MsgBox(HWND hWnd, const char* str, ...);
 #define DEV_ID_1	1
 #define DEV_ID_2	2
 
-//#define USE_SECOND_VJOY
-
-#define XBOXCONTROLLER	L"Controller (Xbox One For Windows)"
-#define VKBSTICK		L" VKB-Sim Space Gunfighter "
-#define VKBKG12			L" VKB-Sim Gunfighter Vintage "
-#define TWCSTHROTTLE	L"TWCS Throttle"
-
 JOYSTICK_POSITION_V2 iReport; // The structure that holds the full position data
 JOYSTICK_POSITION_V2 iReportEx;
 
@@ -155,8 +148,6 @@ struct DeviceData
 	INT  NumberOfButtons;
 
 	DeviceCalibrationData* calibration = NULL;
-
-
 };
 
 #define MAX_DEVICES 5
@@ -578,7 +569,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	if(!InitJoyDevice(DevID_1))
 		goto Exit;
 
-#ifdef USE_SECOND_VJOY
+#if USE_SECOND_VJOY
 	if (!InitJoyDevice(DevID_2))
 		goto Exit;
 #endif
@@ -632,7 +623,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			if (renderTime <= 0)
 			{
 				g_RenderDevice.Render();
-				renderTime += 1.0 / 30.0;
+				renderTime += 1.0 / 60.0;
 			}
 
 			Sleep(8);
@@ -643,7 +634,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 Exit:
 	RelinquishVJD(DevID_1);
-#ifdef USE_SECOND_VJOY
+#if USE_SECOND_VJOY
 	RelinquishVJD(DevID_2);
 #endif
 	g_RenderDevice.CleanupDevice();
@@ -700,23 +691,30 @@ bool UpdateJoyDevice(UINT id, JOYSTICK_POSITION_V2& iReport)
 }
 
 void HandleController(const STime& time)
-{
-	UpdateControllerState();
-	XINPUT_GAMEPAD& gamepad = g_Controllers[0].state.Gamepad;
-
-	DeviceData* dd = GetDevice(XBOXCONTROLLER);
-	if (dd != NULL)
+{	
+	if (wcscmp(g_Mapper->GetDeviceID(), XBOXCONTROLLER) == 0)
 	{
-		bool btnGuide = dd->bButtonStates[10];
-		bool btnShare = dd->bButtonStates[11];
+		UpdateControllerState();
+		XINPUT_GAMEPAD& gamepad = g_Controllers[0].state.Gamepad;
 
-		if (btnGuide) gamepad.wButtons |= JOYPAD_GUIDE;
-		if (btnShare) gamepad.wButtons |= JOYPAD_SHARE;
+		DeviceData* dd = GetDevice(XBOXCONTROLLER);
+		if (dd != NULL)
+		{
+			bool btnGuide = dd->bButtonStates[10];
+			bool btnShare = dd->bButtonStates[11];
+
+			if (btnGuide) gamepad.wButtons |= JOYPAD_GUIDE;
+			if (btnShare) gamepad.wButtons |= JOYPAD_SHARE;
+		}
+
+		g_Mapper->SetButtons(gamepad.wButtons);
+		g_Mapper->SetAxesXInput(gamepad.sThumbLX, gamepad.sThumbLY, gamepad.bLeftTrigger, gamepad.sThumbRX, gamepad.sThumbRY, gamepad.bRightTrigger);
 	}
-
-	SetMapperData(g_Mapper, GetDevice(VKBSTICK));
-	//g_Mapper->SetButtons(gamepad.wButtons);
-	//g_Mapper->SetAxesXInput(gamepad.sThumbLX, gamepad.sThumbLY, gamepad.bLeftTrigger, gamepad.sThumbRX, gamepad.sThumbRY, gamepad.bRightTrigger);
+	else
+	{
+		SetMapperData(g_Mapper, GetDevice(g_Mapper->GetDeviceID()));
+	}	
+	
 	g_Mapper->SetMouse(g_mouseDeltaX, g_mouseDeltaY, g_mouseExBtn1, g_mouseExBtn2);
 	g_Mapper->Update(time);
 
@@ -763,13 +761,13 @@ void HandleController(const STime& time)
 
 	// Send position data to vJoy device
 	UpdateJoyDevice(DevID_1, iReport);
-#ifdef USE_SECOND_VJOY
+#if USE_SECOND_VJOY
 	UpdateJoyDevice(DevID_2, iReportEx);
 #endif
 
-	WORD left, right;
-	g_Mapper->GetVibration(left, right);
-	SetVibration(0, left, right);
+	//WORD left, right;
+	//g_Mapper->GetVibration(left, right);
+	//SetVibration(0, left, right);
 }
 
 HRESULT UpdateControllerState()

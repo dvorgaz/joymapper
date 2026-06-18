@@ -246,7 +246,14 @@ protected:
 		MenuOption(std::wstring label, std::function<void()> func);
 	};
 
+	struct Preset
+	{
+		double* abDetent;
+		double* offsetY;
+	};
+
 	// Internal parameters
+	const wchar_t* m_deviceID;
 	Mode m_Mode;
 	bool m_IsMenuMode;
 	unsigned long m_JoyButtons;
@@ -284,6 +291,7 @@ protected:
 	SpecialButton m_SpecialButtons[MAX_SPECIAL_BUTTONS];
 
 	double* m_AfterburnerDetent;
+	double m_ViewOffsetY;
 
 	std::vector<MenuOption> m_MenuOptions;
 	int m_MenuIdx;
@@ -331,6 +339,7 @@ protected:
 	void HandleMouse(const Stick& stick, StickView* stickView = 0, const STime* time = 0);
 	void HandleMouse(const Stick& stick, unsigned long btnLeft, unsigned long btnRight, unsigned long wheelUp, unsigned long wheelDown, StickView* stickView = 0, const STime* time = 0);
 	static void SetCursorPosition(double x, double y);
+	static void SetCursorPositionScreenSpace(double x, double y);
 	void MouseButton(unsigned char mouseBtn);
 	void ExtraMouseButton(unsigned int btn, bool keyDown);
 	void MouseWheel(int dir);	
@@ -356,6 +365,7 @@ public:
 	void SetKey(unsigned long keyCode, bool down);
 	void SetMouse(long dX, long dY, bool btn1, bool btn2);
 
+	const wchar_t* GetDeviceID();
 	long GetMappedButtons(unsigned int index);
 	unsigned long GetMappedPov(unsigned int index);
 	long GetMappedAxis(unsigned int index, AxisID axis);

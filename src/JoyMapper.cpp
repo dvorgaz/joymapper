@@ -361,6 +361,7 @@ void JoyMapper::ButtonThrottle::Update(const STime& time)
 
 JoyMapper::JoyMapper()
 {
+	m_deviceID = XBOXCONTROLLER;
 	m_Mode = MODE_DEFAULT;
 	m_IsMenuMode = false;
 	m_JoyButtons = 0;
@@ -403,6 +404,7 @@ JoyMapper::JoyMapper()
 	memset(m_SpecialButtons, 0, sizeof(SpecialButton) * MAX_SPECIAL_BUTTONS);
 
 	m_AfterburnerDetent = NULL;
+	m_ViewOffsetY = 0.0;
 	m_MenuIdx = 0;
 
 	m_AxisX = 0;
@@ -596,6 +598,11 @@ void JoyMapper::SetMouse(long dX, long dY, bool btn1, bool btn2)
 
 	m_mouseExBtn_prev[1] = m_mouseExBtn[1];
 	m_mouseExBtn[1] = btn2;
+}
+
+const wchar_t* JoyMapper::GetDeviceID()
+{
+	return m_deviceID;
 }
 
 long JoyMapper::GetMappedButtons(unsigned int index)
@@ -840,18 +847,21 @@ void JoyMapper::UpdateMenu(const STime& time)
 
 void JoyMapper::BuildMenu()
 {
-	double* abDetent = m_AfterburnerDetent;
-	m_MenuOptions.push_back(MenuOption(L"F-16", [abDetent]() { *abDetent = 0.75; }));
-	m_MenuOptions.push_back(MenuOption(L"F-14/F-15C", [abDetent]() { *abDetent = 0.8; }));
-	m_MenuOptions.push_back(MenuOption(L"F-18", [abDetent]() { *abDetent = 0.74; }));
-	m_MenuOptions.push_back(MenuOption(L"F-5", [abDetent]() { *abDetent = 0.81; }));
-	m_MenuOptions.push_back(MenuOption(L"Mig-21", [abDetent]() { *abDetent = 0.91; }));
-	m_MenuOptions.push_back(MenuOption(L"Mig-29", [abDetent]() { *abDetent = 0.61; }));
-	m_MenuOptions.push_back(MenuOption(L"Su-27", [abDetent]() { *abDetent = 0.75; }));
-	m_MenuOptions.push_back(MenuOption(L"Mirage F1", [abDetent]() { *abDetent = 0.59; }));
-	m_MenuOptions.push_back(MenuOption(L"Mirage 2000", [abDetent]() { *abDetent = 0.89; }));
-	m_MenuOptions.push_back(MenuOption(L"AJS37", [abDetent]() { *abDetent = 0.79; }));
-	m_MenuOptions.push_back(MenuOption(L"No detent", [abDetent]() { *abDetent = 1.0; }));
+	Preset preset = { 0 };
+	preset.abDetent = m_AfterburnerDetent;
+	preset.offsetY = &m_ViewOffsetY;
+
+	m_MenuOptions.push_back(MenuOption(L"F-16", [preset]() {		*preset.abDetent = 0.75;	*preset.offsetY = 0.0; }));
+	m_MenuOptions.push_back(MenuOption(L"F-14/F-15C", [preset]() {	*preset.abDetent = 0.8;		*preset.offsetY = 0.08; }));
+	m_MenuOptions.push_back(MenuOption(L"F-18", [preset]() {		*preset.abDetent = 0.74;	*preset.offsetY = 0.0; }));
+	m_MenuOptions.push_back(MenuOption(L"F-5", [preset]() {			*preset.abDetent = 0.81;	*preset.offsetY = 0.0; }));
+	m_MenuOptions.push_back(MenuOption(L"Mig-21", [preset]() {		*preset.abDetent = 0.91;	*preset.offsetY = 0.0; }));
+	m_MenuOptions.push_back(MenuOption(L"Mig-29", [preset]() {		*preset.abDetent = 0.61;	*preset.offsetY = 0.0; }));
+	m_MenuOptions.push_back(MenuOption(L"Su-27", [preset]() {		*preset.abDetent = 0.75;	*preset.offsetY = 0.0; }));
+	m_MenuOptions.push_back(MenuOption(L"Mirage F1", [preset]() {	*preset.abDetent = 0.59;	*preset.offsetY = 0.1; }));
+	m_MenuOptions.push_back(MenuOption(L"Mirage 2000", [preset]() {	*preset.abDetent = 0.89;	*preset.offsetY = 0.0; }));
+	m_MenuOptions.push_back(MenuOption(L"AJS37", [preset]() {		*preset.abDetent = 0.79;	*preset.offsetY = 0.0; }));
+	m_MenuOptions.push_back(MenuOption(L"No detent", [preset]() {	*preset.abDetent = 1.0;		*preset.offsetY = 0.0; }));
 }
 
 void JoyMapper::HandleMouse(const Stick& stick, StickView* stickView, const STime* time)
@@ -889,6 +899,15 @@ void JoyMapper::SetCursorPosition(double x, double y)
 	const int halfHeight = desktop.bottom / 2;
 
 	SetCursorPos(halfWidth + x * MOUSE_CURSOR_RADIUS * halfHeight, halfHeight - y * MOUSE_CURSOR_RADIUS * halfHeight);
+}
+
+void JoyMapper::SetCursorPositionScreenSpace(double x, double y)
+{
+	RECT desktop;
+	const HWND hDesktop = GetDesktopWindow();
+	GetWindowRect(hDesktop, &desktop);
+
+	SetCursorPos(x * desktop.right, (1.0 - y) * desktop.bottom);
 }
 
 void JoyMapper::MouseButton(unsigned char mouseBtn)
