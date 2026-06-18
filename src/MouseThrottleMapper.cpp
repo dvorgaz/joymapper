@@ -9,7 +9,7 @@ MouseThrottleMapper::MouseThrottleMapper()
 
 	m_ABDetent = 0.8;
 	m_AfterburnerDetent = &m_ABDetent;
-	m_mouseAxisX = 0.0;
+	m_mouseAxisX = 0.5;
 	m_mouseAxisY = 0.0;
 	m_axisMode = AM_NONE;
 	m_deltaX = 0;
@@ -74,7 +74,7 @@ void MouseThrottleMapper::UpdateInternal(const STime& time)
 	{
 		m_Mode = MODE_LEFT_MOD;
 	}
-	else if (MOUSEDOWN(viewBtn) && !useMouseLook)
+	else if (MOUSEDOWN(viewBtn))
 	{
 		m_Mode = MODE_RIGHT_MOD;
 	}
@@ -89,21 +89,25 @@ void MouseThrottleMapper::UpdateInternal(const STime& time)
 	static double centeringTime = 0;
 
 	static bool mouseLook = false;
+	static bool viewChanged = false;
+
+	if(viewChanged)
+		m_Mode = MODE_DEFAULT;
 
 	if(useMouseLook)
-		mouseLook = MOUSEDOWN(viewBtn);
+		mouseLook = MOUSEDOWN(viewBtn) && !MOUSEDOWN(throttleBtn);
 
 	if (MOUSEPRESSED(throttleBtn))
 	{
 		leftModTime = time.time;
+		m_deltaX = 0;
+		m_deltaY = 0;
 
 		GetCursorPos(&point);
 	}
 	if (MOUSERELEASED(throttleBtn))
 	{
-		m_axisMode = AM_NONE;
-		m_deltaX = 0;
-		m_deltaY = 0;
+		m_axisMode = AM_NONE;		
 
 		SetCursorPos(point.x, point.y);
 
@@ -111,17 +115,23 @@ void MouseThrottleMapper::UpdateInternal(const STime& time)
 		{
 			// Zoom
 			//m_ButtonAxis.CycleValue();
+
+			m_mouseAxisX = 0.5;
 		}
 	}
 
 	if (MOUSEPRESSED(viewBtn))
 	{
 		rightModTime = time.time;
+		m_deltaX = 0;
+		m_deltaY = 0;
 
 		GetCursorPos(&point);
 	}
 	if (MOUSERELEASED(viewBtn))
 	{
+		viewChanged = false;
+
 		SetCursorPos(point.x, point.y);
 
 		if (time.time - rightModTime < TEMPO_TIME)
@@ -144,6 +154,16 @@ void MouseThrottleMapper::UpdateInternal(const STime& time)
 			m_MouseStick.UpdateAngleMagnitude();
 
 			SetCursorPositionScreenSpace(1, 0);
+
+			const long axisDeadzone = 15;
+			m_deltaX += m_mouseDeltaX;
+			m_deltaY += m_mouseDeltaY;
+
+			if (abs(m_deltaY) > axisDeadzone || abs(m_deltaX) > axisDeadzone)
+			{
+				viewChanged = true;
+				m_Mode = MODE_DEFAULT;
+			}
 		}
 	}
 
@@ -191,8 +211,10 @@ void MouseThrottleMapper::UpdateInternal(const STime& time)
 	}
 	else
 	{
-		m_mouseAxisX = MoveTo(m_mouseAxisX, 0.5, time.deltaTime * (SLIDER_FOLLOW_SPEED) * 0.5);
-		m_Dial = m_mouseAxisX;
+		//m_mouseAxisX = MoveTo(m_mouseAxisX, 0.5, time.deltaTime * (SLIDER_FOLLOW_SPEED) * 0.5);
+		//m_Dial = m_mouseAxisX;
+
+		m_Dial = MoveTo(m_Dial, m_mouseAxisX, time.deltaTime * (SLIDER_FOLLOW_SPEED));
 	}
 
 	if (m_Mode == MODE_RIGHT_MOD)
@@ -213,8 +235,6 @@ void MouseThrottleMapper::UpdateInternal(const STime& time)
 		{
 			m_AxisRX = 0;
 			m_AxisRY = 0;
-			//m_AxisRX = MoveTo(m_AxisRX, 0, time.deltaTime * (SLIDER_FOLLOW_SPEED));
-			//m_AxisRY = MoveTo(m_AxisRY, 0, time.deltaTime * (SLIDER_FOLLOW_SPEED));
 		}
 	}
 

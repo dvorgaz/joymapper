@@ -861,7 +861,7 @@ void JoyMapper::BuildMenu()
 	m_MenuOptions.push_back(MenuOption(L"Mirage F1", [preset]() {	*preset.abDetent = 0.59;	*preset.offsetY = 0.1; }));
 	m_MenuOptions.push_back(MenuOption(L"Mirage 2000", [preset]() {	*preset.abDetent = 0.89;	*preset.offsetY = 0.0; }));
 	m_MenuOptions.push_back(MenuOption(L"AJS37", [preset]() {		*preset.abDetent = 0.79;	*preset.offsetY = 0.0; }));
-	m_MenuOptions.push_back(MenuOption(L"No detent", [preset]() {	*preset.abDetent = 1.0;		*preset.offsetY = 0.0; }));
+	m_MenuOptions.push_back(MenuOption(L"No detent", [preset]() {	*preset.abDetent = 1.0;		*preset.offsetY = 0.1; }));
 }
 
 void JoyMapper::HandleMouse(const Stick& stick, StickView* stickView, const STime* time)
