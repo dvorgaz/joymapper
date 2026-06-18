@@ -855,7 +855,7 @@ void JoyMapper::BuildMenu()
 	m_MenuOptions.push_back(MenuOption(L"F-14/F-15C", [preset]() {	*preset.abDetent = 0.8;		*preset.offsetY = 0.08; }));
 	m_MenuOptions.push_back(MenuOption(L"F-18", [preset]() {		*preset.abDetent = 0.74;	*preset.offsetY = 0.0; }));
 	m_MenuOptions.push_back(MenuOption(L"F-5", [preset]() {			*preset.abDetent = 0.81;	*preset.offsetY = 0.0; }));
-	m_MenuOptions.push_back(MenuOption(L"Mig-21", [preset]() {		*preset.abDetent = 0.91;	*preset.offsetY = 0.0; }));
+	m_MenuOptions.push_back(MenuOption(L"Mig-21", [preset]() {		*preset.abDetent = 0.91;	*preset.offsetY = 0.08; }));
 	m_MenuOptions.push_back(MenuOption(L"Mig-29", [preset]() {		*preset.abDetent = 0.61;	*preset.offsetY = 0.0; }));
 	m_MenuOptions.push_back(MenuOption(L"Su-27", [preset]() {		*preset.abDetent = 0.75;	*preset.offsetY = 0.0; }));
 	m_MenuOptions.push_back(MenuOption(L"Mirage F1", [preset]() {	*preset.abDetent = 0.59;	*preset.offsetY = 0.1; }));
