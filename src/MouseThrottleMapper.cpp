@@ -66,13 +66,15 @@ void MouseThrottleMapper::UpdateInternal(const STime& time)
 #endif
 
 	const bool useMouseLook = true;
+	const int throttleBtn = 1;
+	const int viewBtn = 0;
 
 	m_Mode = MODE_DEFAULT;
-	if (MOUSEDOWN(0))
+	if (MOUSEDOWN(throttleBtn))
 	{
 		m_Mode = MODE_LEFT_MOD;
 	}
-	else if (MOUSEDOWN(1))
+	else if (MOUSEDOWN(viewBtn) && !useMouseLook)
 	{
 		m_Mode = MODE_RIGHT_MOD;
 	}
@@ -88,13 +90,16 @@ void MouseThrottleMapper::UpdateInternal(const STime& time)
 
 	static bool mouseLook = false;
 
-	if (MOUSEPRESSED(0))
+	if(useMouseLook)
+		mouseLook = MOUSEDOWN(viewBtn);
+
+	if (MOUSEPRESSED(throttleBtn))
 	{
 		leftModTime = time.time;
 
 		GetCursorPos(&point);
 	}
-	if (MOUSERELEASED(0))
+	if (MOUSERELEASED(throttleBtn))
 	{
 		m_axisMode = AM_NONE;
 		m_deltaX = 0;
@@ -106,22 +111,16 @@ void MouseThrottleMapper::UpdateInternal(const STime& time)
 		{
 			// Zoom
 			//m_ButtonAxis.CycleValue();
-
-			if (useMouseLook)
-			{
-				centering = true;
-				centeringTime = 0;
-			}
 		}
 	}
 
-	if (MOUSEPRESSED(1))
+	if (MOUSEPRESSED(viewBtn))
 	{
 		rightModTime = time.time;
 
 		GetCursorPos(&point);
 	}
-	if (MOUSERELEASED(1))
+	if (MOUSERELEASED(viewBtn))
 	{
 		SetCursorPos(point.x, point.y);
 
@@ -129,18 +128,8 @@ void MouseThrottleMapper::UpdateInternal(const STime& time)
 		{
 			if (useMouseLook)
 			{
-				mouseLook = !mouseLook;
-				if (!mouseLook)
-					SetCursorPositionScreenSpace(0.5, 0.5);
-
-				if (time.time - lastLookToggleTime < 0.3)
-				{
-					// Double tap
-					//centering = true;
-					//centeringTime = 0;
-				}
-
-				lastLookToggleTime = time.time;
+				centering = true;
+				centeringTime = 0;
 			}
 		}
 	}
@@ -155,37 +144,6 @@ void MouseThrottleMapper::UpdateInternal(const STime& time)
 			m_MouseStick.UpdateAngleMagnitude();
 
 			SetCursorPositionScreenSpace(1, 0);
-		}
-		else
-		{
-			GetCursorPos(&point);
-
-			const double lookSpeed = 1.0;
-			const long margin = 20;
-
-			if (point.x < margin)
-			{
-				m_MouseStick.X -= lookSpeed * time.deltaTime;
-			}
-
-			if (point.x > m_ScreenWidth - margin)
-			{
-				m_MouseStick.X += lookSpeed * time.deltaTime;
-			}
-
-			if (point.y < margin)
-			{
-				m_MouseStick.Y += lookSpeed * time.deltaTime;
-			}
-
-			if (point.y > m_ScreenHeight - margin)
-			{
-				m_MouseStick.Y -= lookSpeed * time.deltaTime;
-			}
-
-			m_MouseStick.X = Clamp(m_MouseStick.X, -1, 1);
-			m_MouseStick.Y = Clamp(m_MouseStick.Y, -1, 1);
-			m_MouseStick.UpdateAngleMagnitude();
 		}
 	}
 
