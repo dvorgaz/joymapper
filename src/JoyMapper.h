@@ -237,20 +237,24 @@ protected:
 		void Update(const STime& time);
 	};
 
+	struct Settings
+	{
+		JoyMapper* mapper;
+
+		Settings(JoyMapper* mapper);
+		Settings& Reset();
+		Settings& ABDetent(double val);
+		Settings& OffsetY(double val);
+	};
+
 	struct MenuOption
 	{
 		std::wstring label;
-		std::function<void()> func;
+		std::function<void(Settings&)> func;
 
 		MenuOption();
-		MenuOption(std::wstring label, std::function<void()> func);
-	};
-
-	struct Preset
-	{
-		double* abDetent;
-		double* offsetY;
-	};
+		MenuOption(std::wstring label, std::function<void(Settings&)> func);
+	};	
 
 	// Internal parameters
 	const wchar_t* m_deviceID;

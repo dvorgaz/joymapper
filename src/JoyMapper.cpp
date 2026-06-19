@@ -491,7 +491,7 @@ void JoyMapper::Update(const STime& time)
 
 	if (!m_IsMenuMode && BTNDOWN(m_MenuActivateBtn1) && BTNDOWN(m_MenuActivateBtn2))
 	{
-		const bool holdTime = 1.0;
+		const double holdTime = 0.25;
 		bool backHeld = time.time - BTNTIME(m_MenuActivateBtn1) > holdTime;
 		bool startHeld = time.time - BTNTIME(m_MenuActivateBtn2) > holdTime;
 
@@ -833,7 +833,8 @@ void JoyMapper::UpdateMenu(const STime& time)
 	{
 		if (m_MenuIdx < m_MenuOptions.size() && m_MenuOptions[m_MenuIdx].func != NULL)
 		{
-			m_MenuOptions[m_MenuIdx].func();
+			Settings settings(this);
+			m_MenuOptions[m_MenuIdx].func(settings);
 			m_IsMenuMode = false;
 		}
 	}
@@ -847,21 +848,17 @@ void JoyMapper::UpdateMenu(const STime& time)
 
 void JoyMapper::BuildMenu()
 {
-	Preset preset = { 0 };
-	preset.abDetent = m_AfterburnerDetent;
-	preset.offsetY = &m_ViewOffsetY;
-
-	m_MenuOptions.push_back(MenuOption(L"F-16", [preset]() {		*preset.abDetent = 0.75;	*preset.offsetY = 0.0; }));
-	m_MenuOptions.push_back(MenuOption(L"F-14/F-15C", [preset]() {	*preset.abDetent = 0.8;		*preset.offsetY = 0.08; }));
-	m_MenuOptions.push_back(MenuOption(L"F-18", [preset]() {		*preset.abDetent = 0.74;	*preset.offsetY = 0.0; }));
-	m_MenuOptions.push_back(MenuOption(L"F-5", [preset]() {			*preset.abDetent = 0.81;	*preset.offsetY = 0.0; }));
-	m_MenuOptions.push_back(MenuOption(L"Mig-21", [preset]() {		*preset.abDetent = 0.91;	*preset.offsetY = 0.08; }));
-	m_MenuOptions.push_back(MenuOption(L"Mig-29", [preset]() {		*preset.abDetent = 0.61;	*preset.offsetY = 0.0; }));
-	m_MenuOptions.push_back(MenuOption(L"Su-27", [preset]() {		*preset.abDetent = 0.75;	*preset.offsetY = 0.0; }));
-	m_MenuOptions.push_back(MenuOption(L"Mirage F1", [preset]() {	*preset.abDetent = 0.59;	*preset.offsetY = 0.1; }));
-	m_MenuOptions.push_back(MenuOption(L"Mirage 2000", [preset]() {	*preset.abDetent = 0.89;	*preset.offsetY = 0.0; }));
-	m_MenuOptions.push_back(MenuOption(L"AJS37", [preset]() {		*preset.abDetent = 0.79;	*preset.offsetY = 0.0; }));
-	m_MenuOptions.push_back(MenuOption(L"No detent", [preset]() {	*preset.abDetent = 1.0;		*preset.offsetY = 0.1; }));
+	m_MenuOptions.push_back(MenuOption(L"F-16",			[](Settings& settings) { settings.Reset().ABDetent(0.75).OffsetY(0); }));
+	m_MenuOptions.push_back(MenuOption(L"F-14/F-15C",	[](Settings& settings) { settings.Reset().ABDetent(0.8).OffsetY(0.08); }));
+	m_MenuOptions.push_back(MenuOption(L"F-18",			[](Settings& settings) { settings.Reset().ABDetent(0.74).OffsetY(0); }));
+	m_MenuOptions.push_back(MenuOption(L"F-5",			[](Settings& settings) { settings.Reset().ABDetent(0.81).OffsetY(0); }));
+	m_MenuOptions.push_back(MenuOption(L"Mig-21",		[](Settings& settings) { settings.Reset().ABDetent(0.91).OffsetY(0.08); }));
+	m_MenuOptions.push_back(MenuOption(L"Mig-29",		[](Settings& settings) { settings.Reset().ABDetent(0.61).OffsetY(0); }));
+	m_MenuOptions.push_back(MenuOption(L"Su-27",		[](Settings& settings) { settings.Reset().ABDetent(0.75).OffsetY(0); }));
+	m_MenuOptions.push_back(MenuOption(L"Mirage F1",	[](Settings& settings) { settings.Reset().ABDetent(0.59).OffsetY(0.1); }));
+	m_MenuOptions.push_back(MenuOption(L"Mirage 2000",	[](Settings& settings) { settings.Reset().ABDetent(0.89).OffsetY(0); }));
+	m_MenuOptions.push_back(MenuOption(L"AJS37",		[](Settings& settings) { settings.Reset().ABDetent(0.79).OffsetY(0); }));
+	m_MenuOptions.push_back(MenuOption(L"No detent",	[](Settings& settings) { settings.Reset().ABDetent(1).OffsetY(0.1); }));
 }
 
 void JoyMapper::HandleMouse(const Stick& stick, StickView* stickView, const STime* time)
@@ -1010,8 +1007,33 @@ JoyMapper::MenuOption::MenuOption()
 	func = NULL;
 }
 
-JoyMapper::MenuOption::MenuOption(std::wstring label, std::function<void()> func)
+JoyMapper::MenuOption::MenuOption(std::wstring label, std::function<void(Settings& settings)> func)
 {
 	this->label = label;
 	this->func = func;
+}
+
+JoyMapper::Settings::Settings(JoyMapper* mapper)
+{
+	this->mapper = mapper;
+}
+
+JoyMapper::Settings& JoyMapper::Settings::Reset()
+{
+	return ABDetent(1).OffsetY(0);
+}
+
+JoyMapper::Settings& JoyMapper::Settings::ABDetent(double val)
+{
+	if (mapper->m_AfterburnerDetent)
+		*mapper->m_AfterburnerDetent = val;
+
+	return *this;
+}
+
+JoyMapper::Settings& JoyMapper::Settings::OffsetY(double val)
+{
+	mapper->m_ViewOffsetY = val;
+
+	return *this;
 }
