@@ -101,6 +101,8 @@ void MouseThrottleMapper::UpdateInternal(const STime& time)
 	if(useMouseLook)
 		mouseLook = MOUSEDOWN(viewBtn);
 
+	m_ThrottleDisplay = AXD_HIDE;
+
 	if (MOUSEPRESSED(throttleBtn))
 	{
 		leftModTime = time.time;
@@ -164,7 +166,7 @@ void MouseThrottleMapper::UpdateInternal(const STime& time)
 				double speed = lookSensitivity * (AxisToFov(m_ZoomAxis) / 80);
 				m_MouseStick.X = Clamp(m_MouseStick.X + ((double)m_mouseDeltaX * speed), -1, 1);
 				m_MouseStick.Y = Clamp(m_MouseStick.Y - ((double)m_mouseDeltaY * speed * 2), -1, 1);
-				m_MouseStick.UpdateAngleMagnitude();
+				//m_MouseStick.UpdateAngleMagnitude();
 			}
 			else
 			{
@@ -203,7 +205,6 @@ void MouseThrottleMapper::UpdateInternal(const STime& time)
 		if (m_axisMode == AM_NONE)
 		{
 			const long axisDeadzone = 15;
-
 			m_deltaX += m_mouseDeltaX;
 			m_deltaY += m_mouseDeltaY;
 
@@ -220,6 +221,7 @@ void MouseThrottleMapper::UpdateInternal(const STime& time)
 		if (m_axisMode == AM_THROTTLE)
 		{
 			// Throttle
+			m_ThrottleDisplay = AXD_SHOW;
 			const double throttleSensitivity = 0.001;
 			m_ThrottleAxis = Clamp(m_ThrottleAxis + ((double)m_mouseDeltaY * -throttleSensitivity), 0, 1);
 			m_Slider = ApplyDeadzoneRegion(m_ThrottleAxis, m_ABDetent, 0.15);
@@ -275,7 +277,7 @@ void MouseThrottleMapper::UpdateInternal(const STime& time)
 				centering = false;
 			}
 
-			m_MouseStick.UpdateAngleMagnitude();
+			//m_MouseStick.UpdateAngleMagnitude();
 		}
 
 		m_AxisRX = m_MouseStick.X;//Lerp(m_AxisRX, m_MouseStick.X, 0.5);

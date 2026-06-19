@@ -371,6 +371,7 @@ JoyMapper::JoyMapper()
 	m_RStick = { 0 };
 	m_LTrigger = 0;
 	m_RTrigger = 0;
+	m_ThrottleDisplay = AXD_AUTO;
 
 	m_MenuActivateBtn1 = JOYPAD_BACK;
 	m_MenuActivateBtn2 = JOYPAD_START;
@@ -409,7 +410,7 @@ JoyMapper::JoyMapper()
 	m_FovMax = 140;
 	m_FovDefault = 90;
 	m_MenuIdx = 0;
-	m_CatgeoryIdx = 0;
+	m_CategoryIdx = 0;
 
 	m_AxisX = 0;
 	m_AxisY = 0;
@@ -845,27 +846,27 @@ void JoyMapper::UpdateMenu(const STime& time)
 
 	if (BTNPRESSED(m_MenuAcceptBtn))
 	{
-		if (m_MenuIdx < m_MenuOptions[m_CatgeoryIdx].size() && m_MenuOptions[m_CatgeoryIdx][m_MenuIdx].func != NULL)
+		if (m_MenuIdx < m_MenuOptions[m_CategoryIdx].size() && m_MenuOptions[m_CategoryIdx][m_MenuIdx].func != NULL)
 		{
 			Settings settings(this);
-			m_MenuOptions[m_CatgeoryIdx][m_MenuIdx].func(settings);
+			m_MenuOptions[m_CategoryIdx][m_MenuIdx].func(settings);
 			m_IsMenuMode = false;
 		}
 	}
 
 	if (BTNPRESSED(m_MenuRightBtn))
-		m_MenuIdx = (m_MenuIdx + 1) % m_MenuOptions[m_CatgeoryIdx].size();
+		m_MenuIdx = (m_MenuIdx + 1) % m_MenuOptions[m_CategoryIdx].size();
 
 	if (BTNPRESSED(m_MenuLeftBtn))
-		m_MenuIdx = (m_MenuIdx - 1 + m_MenuOptions[m_CatgeoryIdx].size()) % m_MenuOptions[m_CatgeoryIdx].size();
+		m_MenuIdx = (m_MenuIdx - 1 + m_MenuOptions[m_CategoryIdx].size()) % m_MenuOptions[m_CategoryIdx].size();
 
 	if (BTNPRESSED(m_MenuDownBtn))
-		m_CatgeoryIdx = (m_CatgeoryIdx + 1) % NUM_CATEGORIES;
+		m_CategoryIdx = (m_CategoryIdx + 1) % NUM_CATEGORIES;
 
 	if (BTNPRESSED(m_MenuUpBtn))
-		m_CatgeoryIdx = (m_CatgeoryIdx - 1 + NUM_CATEGORIES) % NUM_CATEGORIES;
+		m_CategoryIdx = (m_CategoryIdx - 1 + NUM_CATEGORIES) % NUM_CATEGORIES;
 
-	int size = m_MenuOptions[m_CatgeoryIdx].size();
+	int size = m_MenuOptions[m_CategoryIdx].size();
 	if (m_MenuIdx >= size)
 		m_MenuIdx = size - 1;
 }
@@ -888,9 +889,9 @@ void JoyMapper::BuildMenu()
 	m_MenuOptions[CAT_MISC].push_back(MenuOption(L"Fov Def 90",	[](Settings& settings) { settings.DefaultFov(90); }));
 }
 
-wchar_t* JoyMapper::GetCageoryLabel()
+wchar_t* JoyMapper::GetCategoryLabel()
 {
-	switch (m_CatgeoryIdx)
+	switch (m_CategoryIdx)
 	{
 		case CAT_US: return L"US Presets";
 		case CAT_RU: return L"RU Presets";

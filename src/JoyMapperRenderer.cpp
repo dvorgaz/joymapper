@@ -24,7 +24,8 @@ JoyMapperRenderer::JoyMapperRenderer(RenderDevice* device, JoyMapper* mapper)
 
 void JoyMapperRenderer::Update(const STime& time)
 {
-	if (fabs(m_LastThrottle - m_Mapper->m_Slider) > 0.02)
+	JoyMapper::AxisDisplay thd = m_Mapper->m_ThrottleDisplay;
+	if (thd == JoyMapper::AXD_SHOW || (thd == JoyMapper::AXD_AUTO && fabs(m_LastThrottle - m_Mapper->m_Slider) > 0.01))
 	{
 		m_LastThrottleTime = time.time;
 		m_LastThrottle = m_Mapper->m_Slider;
@@ -58,10 +59,10 @@ void JoyMapperRenderer::DrawTexts()
 	wchar_t buf[100];
 	if (m_Mapper->m_IsMenuMode)
 	{
-		int len = swprintf(buf, 100, m_Mapper->GetCageoryLabel());
+		int len = swprintf(buf, 100, m_Mapper->GetCategoryLabel());
 		m_Device->DrawFont(buf, Vector3(WIDTH / 2, 50, 0.5), HudColors::HudGreen);
 
-		swprintf(buf, 100, m_Mapper->m_MenuOptions[m_Mapper->m_CatgeoryIdx][m_Mapper->m_MenuIdx].label.c_str());
+		swprintf(buf, 100, m_Mapper->m_MenuOptions[m_Mapper->m_CategoryIdx][m_Mapper->m_MenuIdx].label.c_str());
 		m_Device->DrawFont(buf, Vector3(WIDTH / 2, 150, 0.5), HudColors::HudGreen);
 	}
 }

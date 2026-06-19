@@ -98,6 +98,13 @@ public:
 		AXIS_DIAL,		
 	};
 
+	enum AxisDisplay
+	{
+		AXD_AUTO,
+		AXD_SHOW,
+		AXD_HIDE
+	};
+
 protected:
 	enum Mode
 	{
@@ -269,6 +276,7 @@ protected:
 	Stick m_RStick;
 	double m_LTrigger;
 	double m_RTrigger;
+	AxisDisplay m_ThrottleDisplay;
 
 	unsigned long m_MenuActivateBtn1;
 	unsigned long m_MenuActivateBtn2;
@@ -313,7 +321,7 @@ protected:
 
 	std::vector<MenuOption> m_MenuOptions[NUM_CATEGORIES];
 	int m_MenuIdx;
-	int m_CatgeoryIdx;
+	int m_CategoryIdx;
 
 	// Output axes
 	double m_AxisX;
@@ -354,7 +362,7 @@ protected:
 
 	void UpdateMenu(const STime& time);
 	void BuildMenu();
-	wchar_t* GetCageoryLabel();
+	wchar_t* GetCategoryLabel();
 
 	void HandleMouse(const Stick& stick, StickView* stickView = 0, const STime* time = 0);
 	void HandleMouse(const Stick& stick, unsigned long btnLeft, unsigned long btnRight, unsigned long wheelUp, unsigned long wheelDown, StickView* stickView = 0, const STime* time = 0);
