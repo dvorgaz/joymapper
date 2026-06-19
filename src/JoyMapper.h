@@ -297,8 +297,18 @@ protected:
 	double* m_AfterburnerDetent;
 	double m_ViewOffsetY;
 
-	std::vector<MenuOption> m_MenuOptions;
+	enum MenuCategories
+	{
+		CAT_US = 0,
+		CAT_RU,
+		CAT_EU,
+		CAT_MISC,
+		NUM_CATEGORIES
+	};
+
+	std::vector<MenuOption> m_MenuOptions[NUM_CATEGORIES];
 	int m_MenuIdx;
+	int m_CatgeoryIdx;
 
 	// Output axes
 	double m_AxisX;
@@ -339,6 +349,7 @@ protected:
 
 	void UpdateMenu(const STime& time);
 	void BuildMenu();
+	wchar_t* GetCageoryLabel();
 
 	void HandleMouse(const Stick& stick, StickView* stickView = 0, const STime* time = 0);
 	void HandleMouse(const Stick& stick, unsigned long btnLeft, unsigned long btnRight, unsigned long wheelUp, unsigned long wheelDown, StickView* stickView = 0, const STime* time = 0);

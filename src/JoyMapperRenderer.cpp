@@ -58,10 +58,10 @@ void JoyMapperRenderer::DrawTexts()
 	wchar_t buf[100];
 	if (m_Mapper->m_IsMenuMode)
 	{
-		int len = swprintf(buf, 100, L"DETENT SETTINGS");
+		int len = swprintf(buf, 100, m_Mapper->GetCageoryLabel());
 		m_Device->DrawFont(buf, Vector3(WIDTH / 2, 50, 0.5), HudColors::HudGreen);
 
-		swprintf(buf, 100, m_Mapper->m_MenuOptions[m_Mapper->m_MenuIdx].label.c_str());
+		swprintf(buf, 100, m_Mapper->m_MenuOptions[m_Mapper->m_CatgeoryIdx][m_Mapper->m_MenuIdx].label.c_str());
 		m_Device->DrawFont(buf, Vector3(WIDTH / 2, 150, 0.5), HudColors::HudGreen);
 	}
 }

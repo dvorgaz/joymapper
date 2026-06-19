@@ -406,6 +406,7 @@ JoyMapper::JoyMapper()
 	m_AfterburnerDetent = NULL;
 	m_ViewOffsetY = 0.0;
 	m_MenuIdx = 0;
+	m_CatgeoryIdx = 0;
 
 	m_AxisX = 0;
 	m_AxisY = 0;
@@ -831,34 +832,57 @@ void JoyMapper::UpdateMenu(const STime& time)
 
 	if (BTNPRESSED(m_MenuAcceptBtn))
 	{
-		if (m_MenuIdx < m_MenuOptions.size() && m_MenuOptions[m_MenuIdx].func != NULL)
+		if (m_MenuIdx < m_MenuOptions[m_CatgeoryIdx].size() && m_MenuOptions[m_CatgeoryIdx][m_MenuIdx].func != NULL)
 		{
 			Settings settings(this);
-			m_MenuOptions[m_MenuIdx].func(settings);
+			m_MenuOptions[m_CatgeoryIdx][m_MenuIdx].func(settings);
 			m_IsMenuMode = false;
 		}
 	}
 
-	if (BTNPRESSED(m_MenuRightBtn) | BTNPRESSED(m_MenuDownBtn))
-		m_MenuIdx = (m_MenuIdx + 1) % m_MenuOptions.size();
+	if (BTNPRESSED(m_MenuRightBtn))
+		m_MenuIdx = (m_MenuIdx + 1) % m_MenuOptions[m_CatgeoryIdx].size();
 
-	if (BTNPRESSED(m_MenuLeftBtn) | BTNPRESSED(m_MenuUpBtn))
-		m_MenuIdx = (m_MenuIdx - 1 + m_MenuOptions.size()) % m_MenuOptions.size();
+	if (BTNPRESSED(m_MenuLeftBtn))
+		m_MenuIdx = (m_MenuIdx - 1 + m_MenuOptions[m_CatgeoryIdx].size()) % m_MenuOptions[m_CatgeoryIdx].size();
+
+	if (BTNPRESSED(m_MenuDownBtn))
+		m_CatgeoryIdx = (m_CatgeoryIdx + 1) % NUM_CATEGORIES;
+
+	if (BTNPRESSED(m_MenuUpBtn))
+		m_CatgeoryIdx = (m_CatgeoryIdx - 1 + NUM_CATEGORIES) % NUM_CATEGORIES;
+
+	int size = m_MenuOptions[m_CatgeoryIdx].size();
+	if (m_MenuIdx >= size)
+		m_MenuIdx = size - 1;
 }
 
 void JoyMapper::BuildMenu()
 {
-	m_MenuOptions.push_back(MenuOption(L"F-16",			[](Settings& settings) { settings.Reset().ABDetent(0.75).OffsetY(0); }));
-	m_MenuOptions.push_back(MenuOption(L"F-14/F-15C",	[](Settings& settings) { settings.Reset().ABDetent(0.8).OffsetY(0.08); }));
-	m_MenuOptions.push_back(MenuOption(L"F-18",			[](Settings& settings) { settings.Reset().ABDetent(0.74).OffsetY(0); }));
-	m_MenuOptions.push_back(MenuOption(L"F-5",			[](Settings& settings) { settings.Reset().ABDetent(0.81).OffsetY(0); }));
-	m_MenuOptions.push_back(MenuOption(L"Mig-21",		[](Settings& settings) { settings.Reset().ABDetent(0.91).OffsetY(0.08); }));
-	m_MenuOptions.push_back(MenuOption(L"Mig-29",		[](Settings& settings) { settings.Reset().ABDetent(0.61).OffsetY(0); }));
-	m_MenuOptions.push_back(MenuOption(L"Su-27",		[](Settings& settings) { settings.Reset().ABDetent(0.75).OffsetY(0); }));
-	m_MenuOptions.push_back(MenuOption(L"Mirage F1",	[](Settings& settings) { settings.Reset().ABDetent(0.59).OffsetY(0.1); }));
-	m_MenuOptions.push_back(MenuOption(L"Mirage 2000",	[](Settings& settings) { settings.Reset().ABDetent(0.89).OffsetY(0); }));
-	m_MenuOptions.push_back(MenuOption(L"AJS37",		[](Settings& settings) { settings.Reset().ABDetent(0.79).OffsetY(0); }));
-	m_MenuOptions.push_back(MenuOption(L"No detent",	[](Settings& settings) { settings.Reset().ABDetent(1).OffsetY(0.1); }));
+	m_MenuOptions[CAT_US].push_back(MenuOption(L"F-16",			[](Settings& settings) { settings.Reset().ABDetent(0.75); }));
+	m_MenuOptions[CAT_US].push_back(MenuOption(L"F-14/F-15C",	[](Settings& settings) { settings.Reset().ABDetent(0.8).OffsetY(0.08); }));
+	m_MenuOptions[CAT_US].push_back(MenuOption(L"F-18",			[](Settings& settings) { settings.Reset().ABDetent(0.74); }));
+	m_MenuOptions[CAT_US].push_back(MenuOption(L"F-5",			[](Settings& settings) { settings.Reset().ABDetent(0.81); }));
+	m_MenuOptions[CAT_RU].push_back(MenuOption(L"Mig-21",		[](Settings& settings) { settings.Reset().ABDetent(0.91).OffsetY(0.08); }));
+	m_MenuOptions[CAT_RU].push_back(MenuOption(L"Mig-29",		[](Settings& settings) { settings.Reset().ABDetent(0.61); }));
+	m_MenuOptions[CAT_RU].push_back(MenuOption(L"Su-27",		[](Settings& settings) { settings.Reset().ABDetent(0.75); }));
+	m_MenuOptions[CAT_EU].push_back(MenuOption(L"Mirage F1",	[](Settings& settings) { settings.Reset().ABDetent(0.59).OffsetY(0.1); }));
+	m_MenuOptions[CAT_EU].push_back(MenuOption(L"Mirage 2000",	[](Settings& settings) { settings.Reset().ABDetent(0.89); }));
+	m_MenuOptions[CAT_EU].push_back(MenuOption(L"AJS37",		[](Settings& settings) { settings.Reset().ABDetent(0.79); }));
+	m_MenuOptions[CAT_MISC].push_back(MenuOption(L"No detent",	[](Settings& settings) { settings.Reset(); }));
+}
+
+wchar_t* JoyMapper::GetCageoryLabel()
+{
+	switch (m_CatgeoryIdx)
+	{
+		case CAT_US: return L"US Presets";
+		case CAT_RU: return L"RU Presets";
+		case CAT_EU: return L"EU Presets";
+		case CAT_MISC: return L"MISC";
+	}
+
+	return L"Settings";
 }
 
 void JoyMapper::HandleMouse(const Stick& stick, StickView* stickView, const STime* time)
