@@ -55,6 +55,10 @@ MouseThrottleMapper::MouseThrottleMapper()
 	GetWindowRect(hDesktop, &desktop);
 	m_ScreenWidth = desktop.right;
 	m_ScreenHeight = desktop.bottom;
+
+	m_MouseLocked = 0;
+	m_SavedMouseX = 0;
+	m_SavedMouseY = 0;
 }
 
 void MouseThrottleMapper::UpdateInternal(const STime& time)
@@ -70,13 +74,13 @@ void MouseThrottleMapper::UpdateInternal(const STime& time)
 	const int viewBtn = 0;
 
 	m_Mode = MODE_DEFAULT;
-	if (MOUSEDOWN(throttleBtn))
-	{
-		m_Mode = MODE_LEFT_MOD;
-	}
-	else if (MOUSEDOWN(viewBtn))
+	if (MOUSEDOWN(viewBtn))
 	{
 		m_Mode = MODE_RIGHT_MOD;
+	}
+	else if (MOUSEDOWN(throttleBtn))
+	{
+		m_Mode = MODE_LEFT_MOD;
 	}
 
 	static double leftModTime = time.time;
@@ -95,7 +99,7 @@ void MouseThrottleMapper::UpdateInternal(const STime& time)
 		m_Mode = MODE_DEFAULT;
 
 	if(useMouseLook)
-		mouseLook = MOUSEDOWN(viewBtn) && !MOUSEDOWN(throttleBtn);
+		mouseLook = MOUSEDOWN(viewBtn);
 
 	if (MOUSEPRESSED(throttleBtn))
 	{
@@ -103,20 +107,28 @@ void MouseThrottleMapper::UpdateInternal(const STime& time)
 		m_deltaX = 0;
 		m_deltaY = 0;
 
-		GetCursorPos(&point);
+		LockMouse(true);
 	}
 	if (MOUSERELEASED(throttleBtn))
 	{
 		m_axisMode = AM_NONE;		
 
-		SetCursorPos(point.x, point.y);
+		LockMouse(false);
 
 		if (time.time - leftModTime < TEMPO_TIME)
 		{
 			// Zoom
 			//m_ButtonAxis.CycleValue();
 
-			m_mouseAxisX = 0.5;
+			if (mouseLook)
+			{
+				m_AxisX = 0;
+				m_AxisY = 0;
+			}
+			else
+			{
+				m_mouseAxisX = 0.5;
+			}
 		}
 	}
 
@@ -126,13 +138,13 @@ void MouseThrottleMapper::UpdateInternal(const STime& time)
 		m_deltaX = 0;
 		m_deltaY = 0;
 
-		GetCursorPos(&point);
+		LockMouse(true);
 	}
 	if (MOUSERELEASED(viewBtn))
 	{
 		viewChanged = false;
 
-		SetCursorPos(point.x, point.y);
+		LockMouse(false);
 
 		if (time.time - rightModTime < TEMPO_TIME)
 		{
@@ -144,16 +156,25 @@ void MouseThrottleMapper::UpdateInternal(const STime& time)
 		}
 	}
 
+	if(m_MouseLocked)
+		SetCursorPositionScreenSpace(1, 0);
+
 	if (useMouseLook && (m_Mode == MODE_DEFAULT || m_Mode == MODE_RIGHT_MOD))
 	{
 		if (mouseLook)
 		{
 			const double lookSensitivity = 0.0015;
-			m_MouseStick.X = Clamp(m_MouseStick.X + ((double)m_mouseDeltaX * lookSensitivity), -1, 1);
-			m_MouseStick.Y = Clamp(m_MouseStick.Y + ((double)m_mouseDeltaY * -lookSensitivity * 1.8), -1, 1);
-			m_MouseStick.UpdateAngleMagnitude();
-
-			SetCursorPositionScreenSpace(1, 0);
+			if (!MOUSEDOWN(throttleBtn))
+			{
+				m_MouseStick.X = Clamp(m_MouseStick.X + ((double)m_mouseDeltaX * lookSensitivity), -1, 1);
+				m_MouseStick.Y = Clamp(m_MouseStick.Y + ((double)m_mouseDeltaY * -lookSensitivity * 1.8), -1, 1);
+				m_MouseStick.UpdateAngleMagnitude();
+			}
+			else
+			{
+				m_AxisX = Clamp(m_AxisX + ((double)m_mouseDeltaX * -lookSensitivity), -1, 1);
+				m_AxisY = Clamp(m_AxisY + ((double)m_mouseDeltaY * lookSensitivity), -1, 1);
+			}
 
 			const long axisDeadzone = 15;
 			m_deltaX += m_mouseDeltaX;
@@ -206,8 +227,6 @@ void MouseThrottleMapper::UpdateInternal(const STime& time)
 			m_mouseAxisX = Clamp(m_mouseAxisX + ((double)m_mouseDeltaX * -zoomSensitivity), 0, 1);
 			m_Dial = m_mouseAxisX;
 		}
-
-		SetCursorPositionScreenSpace(1, 0);
 	}
 	else
 	{
@@ -225,8 +244,6 @@ void MouseThrottleMapper::UpdateInternal(const STime& time)
 			const double slewSensitivity = 0.003;
 			m_AxisRX = Clamp(m_AxisRX + ((double)m_mouseDeltaX * slewSensitivity), -1, 1);
 			m_AxisRY = Clamp(m_AxisRY + ((double)m_mouseDeltaY * -slewSensitivity), -1, 1);
-
-			SetCursorPositionScreenSpace(1, 0);
 		}
 	}
 	else
@@ -245,12 +262,12 @@ void MouseThrottleMapper::UpdateInternal(const STime& time)
 			centeringTime += time.deltaTime;
 			double t = min(centeringTime / VIEW_CENTERING_TIME, 1.0);
 			m_MouseStick.X = Lerp(m_MouseStick.X, 0, t);
-			m_MouseStick.Y = Lerp(m_MouseStick.Y, m_ViewOffsetY, t);
+			m_MouseStick.Y = Lerp(m_MouseStick.Y, 0 /*+ m_ViewOffsetY*/, t);
 
-			if (fabs(m_MouseStick.X) < 0.001 && fabs(m_MouseStick.Y - m_ViewOffsetY) < 0.001)
+			if (fabs(m_MouseStick.X) < 0.001 && fabs(m_MouseStick.Y /*- m_ViewOffsetY*/) < 0.001)
 			{
 				m_MouseStick.X = 0;
-				m_MouseStick.Y = m_ViewOffsetY;
+				m_MouseStick.Y = 0 /*+ m_ViewOffsetY*/;
 				centering = false;
 			}
 
@@ -265,8 +282,8 @@ void MouseThrottleMapper::UpdateInternal(const STime& time)
 	m_WheelBrakeAxis.Update(time);
 
 	// Stick
-	m_AxisX = m_LStick.X;
-	m_AxisY = m_LStick.Y;
+	//m_AxisX = m_LStick.X;
+	//m_AxisY = m_LStick.Y;
 
 	// Rudder
 	m_AxisZ = m_PhysAxisZ;
@@ -343,4 +360,22 @@ void MouseThrottleMapper::UpdateLogicalButtonsInternal(int& ctr, const STime& ti
 
 	SetLogicalButton(ctr++, m_ButtonHoldTime[GetShiftAmount(timeBtn)] > 0);
 	SetLogicalButton(ctr++, time.time - lastPulseTime < BUTTON_HOLD_TIME);
+}
+
+void MouseThrottleMapper::LockMouse(bool locked)
+{
+	if (locked && !m_MouseLocked)
+	{
+		POINT point;
+		GetCursorPos(&point);
+		m_SavedMouseX = point.x;
+		m_SavedMouseY = point.y;
+	}
+	else
+	{
+		SetCursorPos(m_SavedMouseX, m_SavedMouseY);
+	}
+
+	m_MouseLocked += locked ? 1 : -1;
+	m_MouseLocked = max(0, m_MouseLocked);
 }

@@ -170,7 +170,12 @@ private:
 	long m_deltaY;
 	long m_ScreenWidth;
 	long m_ScreenHeight;
+	int m_MouseLocked;
+	long m_SavedMouseX;
+	long m_SavedMouseY;
 
 	void UpdateInternal(const STime& time) override;
 	void UpdateLogicalButtonsInternal(int& ctr, const STime& time) override;
+
+	void LockMouse(bool locked);
 };
