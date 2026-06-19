@@ -163,8 +163,8 @@ private:
 	ButtonAxis m_ButtonAxis;
 	ButtonAxis m_WheelBrakeAxis;
 	double m_ABDetent;
-	double m_mouseAxisX;
-	double m_mouseAxisY;
+	double m_ZoomAxis;
+	double m_ThrottleAxis;
 	AxisMode m_axisMode;
 	long m_deltaX;
 	long m_deltaY;

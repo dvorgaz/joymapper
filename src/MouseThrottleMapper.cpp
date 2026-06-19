@@ -9,8 +9,8 @@ MouseThrottleMapper::MouseThrottleMapper()
 
 	m_ABDetent = 0.8;
 	m_AfterburnerDetent = &m_ABDetent;
-	m_mouseAxisX = 0.5;
-	m_mouseAxisY = 0.0;
+	m_ZoomAxis = FovToAxis(m_FovDefault);
+	m_ThrottleAxis = 0.0;
 	m_axisMode = AM_NONE;
 	m_deltaX = 0;
 	m_deltaY = 0;
@@ -120,15 +120,8 @@ void MouseThrottleMapper::UpdateInternal(const STime& time)
 			// Zoom
 			//m_ButtonAxis.CycleValue();
 
-			if (mouseLook)
-			{
-				m_AxisX = 0;
-				m_AxisY = 0;
-			}
-			else
-			{
-				m_mouseAxisX = 0.5;
-			}
+			// Reset zoom
+			m_ZoomAxis = FovToAxis(m_FovDefault);
 		}
 	}
 
@@ -159,6 +152,7 @@ void MouseThrottleMapper::UpdateInternal(const STime& time)
 	if(m_MouseLocked)
 		SetCursorPositionScreenSpace(1, 0);
 
+	bool lateralMove = false;
 	if (useMouseLook && (m_Mode == MODE_DEFAULT || m_Mode == MODE_RIGHT_MOD))
 	{
 		if (mouseLook)
@@ -166,13 +160,17 @@ void MouseThrottleMapper::UpdateInternal(const STime& time)
 			const double lookSensitivity = 0.0015;
 			if (!MOUSEDOWN(throttleBtn))
 			{
-				m_MouseStick.X = Clamp(m_MouseStick.X + ((double)m_mouseDeltaX * lookSensitivity), -1, 1);
-				m_MouseStick.Y = Clamp(m_MouseStick.Y + ((double)m_mouseDeltaY * -lookSensitivity * 1.8), -1, 1);
+				// Mouse look
+				double speed = lookSensitivity * (AxisToFov(m_ZoomAxis) / 80);
+				m_MouseStick.X = Clamp(m_MouseStick.X + ((double)m_mouseDeltaX * speed), -1, 1);
+				m_MouseStick.Y = Clamp(m_MouseStick.Y - ((double)m_mouseDeltaY * speed * 2), -1, 1);
 				m_MouseStick.UpdateAngleMagnitude();
 			}
 			else
 			{
-				m_AxisX = Clamp(m_AxisX + ((double)m_mouseDeltaX * -lookSensitivity), -1, 1);
+				// Camera move
+				lateralMove = true;
+				m_AxisX = Clamp(m_AxisX - ((double)m_mouseDeltaX * lookSensitivity), -1, 1);
 				m_AxisY = Clamp(m_AxisY + ((double)m_mouseDeltaY * lookSensitivity), -1, 1);
 			}
 
@@ -186,6 +184,12 @@ void MouseThrottleMapper::UpdateInternal(const STime& time)
 				m_Mode = MODE_DEFAULT;
 			}
 		}
+	}
+
+	if (!lateralMove)
+	{
+		m_AxisX = MoveTo(m_AxisX, 0, time.deltaTime * (SLIDER_FOLLOW_SPEED));
+		m_AxisY = MoveTo(m_AxisY, 0, time.deltaTime * (SLIDER_FOLLOW_SPEED));
 	}
 
 	if (m_Mode == MODE_LEFT_MOD)
@@ -217,23 +221,23 @@ void MouseThrottleMapper::UpdateInternal(const STime& time)
 		{
 			// Throttle
 			const double throttleSensitivity = 0.001;
-			m_mouseAxisY = Clamp(m_mouseAxisY + ((double)m_mouseDeltaY * -throttleSensitivity), 0, 1);
-			m_Slider = ApplyDeadzoneRegion(m_mouseAxisY, m_ABDetent, 0.15);
+			m_ThrottleAxis = Clamp(m_ThrottleAxis + ((double)m_mouseDeltaY * -throttleSensitivity), 0, 1);
+			m_Slider = ApplyDeadzoneRegion(m_ThrottleAxis, m_ABDetent, 0.15);
 		}
 		else if (m_axisMode == AM_ZOOM)
 		{
 			// Zoom
 			const double zoomSensitivity = 0.001;
-			m_mouseAxisX = Clamp(m_mouseAxisX + ((double)m_mouseDeltaX * -zoomSensitivity), 0, 1);
-			m_Dial = m_mouseAxisX;
+			m_ZoomAxis = Clamp(m_ZoomAxis + ((double)m_mouseDeltaX * -zoomSensitivity), 0, 1);
+			m_Dial = m_ZoomAxis;
 		}
 	}
 	else
 	{
-		//m_mouseAxisX = MoveTo(m_mouseAxisX, 0.5, time.deltaTime * (SLIDER_FOLLOW_SPEED) * 0.5);
-		//m_Dial = m_mouseAxisX;
+		//m_ZoomAxis = MoveTo(m_ZoomAxis, 0.5, time.deltaTime * (SLIDER_FOLLOW_SPEED) * 0.5);
+		//m_Dial = m_ZoomAxis;
 
-		m_Dial = MoveTo(m_Dial, m_mouseAxisX, time.deltaTime * (SLIDER_FOLLOW_SPEED));
+		m_Dial = MoveTo(m_Dial, m_ZoomAxis, time.deltaTime * (SLIDER_FOLLOW_SPEED));
 	}
 
 	if (m_Mode == MODE_RIGHT_MOD)
@@ -243,7 +247,7 @@ void MouseThrottleMapper::UpdateInternal(const STime& time)
 			// TDC slew
 			const double slewSensitivity = 0.003;
 			m_AxisRX = Clamp(m_AxisRX + ((double)m_mouseDeltaX * slewSensitivity), -1, 1);
-			m_AxisRY = Clamp(m_AxisRY + ((double)m_mouseDeltaY * -slewSensitivity), -1, 1);
+			m_AxisRY = Clamp(m_AxisRY - ((double)m_mouseDeltaY * slewSensitivity), -1, 1);
 		}
 	}
 	else
@@ -274,8 +278,8 @@ void MouseThrottleMapper::UpdateInternal(const STime& time)
 			m_MouseStick.UpdateAngleMagnitude();
 		}
 
-		m_AxisRX = Lerp(m_AxisRX, m_MouseStick.X, 0.5);
-		m_AxisRY = Lerp(m_AxisRY, m_MouseStick.Y, 0.5);
+		m_AxisRX = m_MouseStick.X;//Lerp(m_AxisRX, m_MouseStick.X, 0.5);
+		m_AxisRY = m_MouseStick.Y;//Lerp(m_AxisRY, m_MouseStick.Y, 0.5);
 	}
 
 	//m_ButtonAxis.Update(time);

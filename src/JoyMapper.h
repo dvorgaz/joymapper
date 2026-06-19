@@ -245,6 +245,8 @@ protected:
 		Settings& Reset();
 		Settings& ABDetent(double val);
 		Settings& OffsetY(double val);
+		Settings& Fov(double min, double max);
+		Settings& DefaultFov(double val);
 	};
 
 	struct MenuOption
@@ -296,6 +298,9 @@ protected:
 
 	double* m_AfterburnerDetent;
 	double m_ViewOffsetY;
+	double m_FovMin;
+	double m_FovMax;
+	double m_FovDefault;
 
 	enum MenuCategories
 	{
@@ -387,6 +392,8 @@ public:
 
 	void GetVibration(unsigned short& left, unsigned short& right);
 	double GetAfterburnerDetent();
+	double AxisToFov(double axis);
+	double FovToAxis(double fov);
 
 	bool GetKey(unsigned long keyCode);
 	bool GetKeyDown(unsigned long keyCode);

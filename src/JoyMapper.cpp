@@ -405,6 +405,9 @@ JoyMapper::JoyMapper()
 
 	m_AfterburnerDetent = NULL;
 	m_ViewOffsetY = 0.0;
+	m_FovMin = 20;
+	m_FovMax = 140;
+	m_FovDefault = 90;
 	m_MenuIdx = 0;
 	m_CatgeoryIdx = 0;
 
@@ -693,6 +696,16 @@ double JoyMapper::GetAfterburnerDetent()
 	return 1.0;
 }
 
+double JoyMapper::AxisToFov(double axis)
+{
+	return axis * (m_FovMax - m_FovMin) + m_FovMin;
+}
+
+double JoyMapper::FovToAxis(double fov)
+{
+	return (fov - m_FovMin) / (m_FovMax - m_FovMin);
+}
+
 bool JoyMapper::GetKey(unsigned long keyCode)
 {
 	if(keyCode < MAX_KEYS)
@@ -858,18 +871,21 @@ void JoyMapper::UpdateMenu(const STime& time)
 }
 
 void JoyMapper::BuildMenu()
-{
-	m_MenuOptions[CAT_US].push_back(MenuOption(L"F-16",			[](Settings& settings) { settings.Reset().ABDetent(0.75); }));
-	m_MenuOptions[CAT_US].push_back(MenuOption(L"F-14/F-15C",	[](Settings& settings) { settings.Reset().ABDetent(0.8).OffsetY(0.08); }));
-	m_MenuOptions[CAT_US].push_back(MenuOption(L"F-18",			[](Settings& settings) { settings.Reset().ABDetent(0.74); }));
+{	
 	m_MenuOptions[CAT_US].push_back(MenuOption(L"F-5",			[](Settings& settings) { settings.Reset().ABDetent(0.81); }));
-	m_MenuOptions[CAT_RU].push_back(MenuOption(L"Mig-21",		[](Settings& settings) { settings.Reset().ABDetent(0.91).OffsetY(0.08); }));
+	m_MenuOptions[CAT_US].push_back(MenuOption(L"F-14",			[](Settings& settings) { settings.Reset().ABDetent(0.8).Fov(30, 140); }));
+	m_MenuOptions[CAT_US].push_back(MenuOption(L"F-15C",		[](Settings& settings) { settings.Reset().ABDetent(0.8); }));
+	m_MenuOptions[CAT_US].push_back(MenuOption(L"F-16",			[](Settings& settings) { settings.Reset().ABDetent(0.75); }));
+	m_MenuOptions[CAT_US].push_back(MenuOption(L"F-18",			[](Settings& settings) { settings.Reset().ABDetent(0.74); }));	
+	m_MenuOptions[CAT_RU].push_back(MenuOption(L"Mig-21",		[](Settings& settings) { settings.Reset().ABDetent(0.91).Fov(30, 150); }));
 	m_MenuOptions[CAT_RU].push_back(MenuOption(L"Mig-29",		[](Settings& settings) { settings.Reset().ABDetent(0.61); }));
 	m_MenuOptions[CAT_RU].push_back(MenuOption(L"Su-27",		[](Settings& settings) { settings.Reset().ABDetent(0.75); }));
-	m_MenuOptions[CAT_EU].push_back(MenuOption(L"Mirage F1",	[](Settings& settings) { settings.Reset().ABDetent(0.59).OffsetY(0.1); }));
+	m_MenuOptions[CAT_EU].push_back(MenuOption(L"Mirage F1",	[](Settings& settings) { settings.Reset().ABDetent(0.59); }));
 	m_MenuOptions[CAT_EU].push_back(MenuOption(L"Mirage 2000",	[](Settings& settings) { settings.Reset().ABDetent(0.89); }));
 	m_MenuOptions[CAT_EU].push_back(MenuOption(L"AJS37",		[](Settings& settings) { settings.Reset().ABDetent(0.79); }));
-	m_MenuOptions[CAT_MISC].push_back(MenuOption(L"No detent",	[](Settings& settings) { settings.Reset(); }));
+	m_MenuOptions[CAT_MISC].push_back(MenuOption(L"No detent",	[](Settings& settings) { settings.ABDetent(1); }));
+	m_MenuOptions[CAT_MISC].push_back(MenuOption(L"Fov Def 70",	[](Settings& settings) { settings.DefaultFov(70); }));
+	m_MenuOptions[CAT_MISC].push_back(MenuOption(L"Fov Def 90",	[](Settings& settings) { settings.DefaultFov(90); }));
 }
 
 wchar_t* JoyMapper::GetCageoryLabel()
@@ -1044,7 +1060,7 @@ JoyMapper::Settings::Settings(JoyMapper* mapper)
 
 JoyMapper::Settings& JoyMapper::Settings::Reset()
 {
-	return ABDetent(1).OffsetY(0);
+	return ABDetent(1).OffsetY(0).Fov(20, 140);
 }
 
 JoyMapper::Settings& JoyMapper::Settings::ABDetent(double val)
@@ -1058,6 +1074,21 @@ JoyMapper::Settings& JoyMapper::Settings::ABDetent(double val)
 JoyMapper::Settings& JoyMapper::Settings::OffsetY(double val)
 {
 	mapper->m_ViewOffsetY = val;
+
+	return *this;
+}
+
+JoyMapper::Settings& JoyMapper::Settings::Fov(double min, double max)
+{
+	mapper->m_FovMin = min;
+	mapper->m_FovMax = max;
+
+	return *this;
+}
+
+JoyMapper::Settings& JoyMapper::Settings::DefaultFov(double val)
+{
+	mapper->m_FovDefault = val;
 
 	return *this;
 }
