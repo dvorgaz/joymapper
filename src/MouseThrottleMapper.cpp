@@ -190,7 +190,10 @@ void MouseThrottleMapper::UpdateInternal(const STime& time)
 
 	if (!lateralMove)
 	{
+		// Recenter horizontal
 		m_AxisX = MoveTo(m_AxisX, 0, time.deltaTime * (SLIDER_FOLLOW_SPEED));
+		// Recenter vertical
+		if(fabs(m_AxisY) < 0.05)
 		m_AxisY = MoveTo(m_AxisY, 0, time.deltaTime * (SLIDER_FOLLOW_SPEED));
 	}
 
@@ -263,6 +266,18 @@ void MouseThrottleMapper::UpdateInternal(const STime& time)
 
 	if (useMouseLook)
 	{
+		if (!centering && !mouseLook)
+		{
+			// Auto center near the middle
+			double deadZone = 0.1 * (AxisToFov(m_ZoomAxis) / 90);
+			double sqMag = m_MouseStick.X * m_MouseStick.X + m_MouseStick.Y * m_MouseStick.Y * 0.25;
+			if (sqMag < deadZone * deadZone)
+			{
+				centering = true;
+				centeringTime = 0;
+			}
+		}
+
 		if (centering)
 		{
 			centeringTime += time.deltaTime;

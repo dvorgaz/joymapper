@@ -885,6 +885,7 @@ void JoyMapper::BuildMenu()
 	m_MenuOptions[CAT_EU].push_back(MenuOption(L"Mirage 2000",	[](Settings& settings) { settings.Reset().ABDetent(0.89); }));
 	m_MenuOptions[CAT_EU].push_back(MenuOption(L"AJS37",		[](Settings& settings) { settings.Reset().ABDetent(0.79); }));
 	m_MenuOptions[CAT_MISC].push_back(MenuOption(L"No detent",	[](Settings& settings) { settings.ABDetent(1); }));
+	m_MenuOptions[CAT_MISC].push_back(MenuOption(L"IL-2",		[](Settings& settings) { settings.Reset().ABDetent(1).Fov(30, 105); }));
 	m_MenuOptions[CAT_MISC].push_back(MenuOption(L"Fov Def 70",	[](Settings& settings) { settings.DefaultFov(70); }));
 	m_MenuOptions[CAT_MISC].push_back(MenuOption(L"Fov Def 90",	[](Settings& settings) { settings.DefaultFov(90); }));
 }
