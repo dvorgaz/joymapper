@@ -167,7 +167,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>Setupapi.lib;vJoyInterface.lib;dinput8.lib;dxguid.lib;comctl32.lib;hid.lib;d3d11.lib;d3dcompiler.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Setupapi.lib;Shlwapi.lib;vJoyInterface.lib;dinput8.lib;dxguid.lib;comctl32.lib;hid.lib;d3d11.lib;d3dcompiler.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>..\lib\amd64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
@@ -218,7 +218,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>Setupapi.lib;vJoyInterface.lib;dinput8.lib;dxguid.lib;comctl32.lib;hid.lib;d3d11.lib;d3dcompiler.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Setupapi.lib;Shlwapi.lib;vJoyInterface.lib;dinput8.lib;dxguid.lib;comctl32.lib;hid.lib;d3d11.lib;d3dcompiler.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>..\lib\amd64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
@@ -268,7 +268,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>Setupapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Setupapi.lib;Shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>..\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Console</SubSystem>
@@ -286,17 +286,20 @@
     <ClCompile Include="JoyMapperVariants.cpp" />
     <ClCompile Include="MouseThrottleMapper.cpp" />
     <ClCompile Include="RenderDevice.cpp" />
+    <ClCompile Include="Tracking.cpp" />
     <ClCompile Include="vJoyClientWin.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\inc\public.h" />
     <ClInclude Include="..\inc\vjoyinterface.h" />
     <ClInclude Include="ButtonDefines.h" />
+    <ClInclude Include="Common.h" />
     <ClInclude Include="JoyMapper.h" />
     <ClInclude Include="JoyMapperRenderer.h" />
     <ClInclude Include="JoyMapperVariants.h" />
     <ClInclude Include="RenderDevice.h" />
     <ClInclude Include="stdafx.h" />
+    <ClInclude Include="Tracking.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="CourierNew.spritefont" />

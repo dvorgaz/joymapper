@@ -1,0 +1,15 @@
+#pragma once
+
+#define M_PI 3.14159265358979323846
+
+enum AxisID
+{
+	AXIS_X = 0,
+	AXIS_Y,
+	AXIS_Z,
+	AXIS_RX,
+	AXIS_RY,
+	AXIS_RZ,
+	AXIS_SLIDER,
+	AXIS_DIAL,
+};

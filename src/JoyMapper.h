@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 
+#include "Common.h"
 #include "ButtonDefines.h"
 
 //-----------------------------------------------------------------------------
@@ -73,8 +74,6 @@ int GetShiftAmount(unsigned long flag);
 #define MAX_BUTTON_ON_AXIS		3
 #define MAX_KEYS				245
 
-#define M_PI 3.14159265358979323846
-
 struct STime
 {
 	double time;
@@ -86,18 +85,6 @@ class JoyMapper
 	friend class JoyMapperRenderer;
 
 public:
-	enum AxisID
-	{
-		AXIS_X,
-		AXIS_Y,
-		AXIS_Z,
-		AXIS_RX,
-		AXIS_RY,
-		AXIS_RZ,
-		AXIS_SLIDER,
-		AXIS_DIAL,		
-	};
-
 	enum AxisDisplay
 	{
 		AXD_AUTO,
@@ -339,6 +326,14 @@ protected:
 	double m_Ex_AxisRY;
 	double m_Ex_AxisRZ;
 
+	// Headtracking axes
+	double m_HeadX;
+	double m_HeadY;
+	double m_HeadZ;
+	double m_HeadRX;
+	double m_HeadRY;
+	double m_HeadRZ;
+
 	long m_LogicalButtons[NUM_BUTTON_EXTENSIONS];
 	int m_ScrollDirection;
 	bool m_ScrollDirty;
@@ -397,6 +392,7 @@ public:
 	long GetMappedButtons(unsigned int index);
 	unsigned long GetMappedPov(unsigned int index);
 	long GetMappedAxis(unsigned int index, AxisID axis);
+	void GetHeadAxes(double* outAxes);
 
 	void GetVibration(unsigned short& left, unsigned short& right);
 	double GetAfterburnerDetent();

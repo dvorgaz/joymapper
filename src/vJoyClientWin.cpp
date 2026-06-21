@@ -25,6 +25,7 @@
 #include "RenderDevice.h"
 #include "JoyMapperVariants.h"
 #include "JoyMapperRenderer.h"
+#include "Tracking.h"
 
 #define ARRAY_SIZE(x)	(sizeof(x) / sizeof((x)[0]))
 #define WC_MAINFRAME	TEXT("MainFrame")
@@ -554,6 +555,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	int stat = 0;
 	id = 1;
 
+	// Headtracking init
+	double headAxes[6];
+	Tracking tracking;
+	tracking.Initialize();
+
 	// Get the driver attributes (Vendor ID, Product ID, Version Number)
 	if (!vJoyEnabled())
 	{
@@ -618,6 +624,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 			HandleController(time);
 			g_MapperRenderer.Update(time);
+			
+			g_Mapper->GetHeadAxes(headAxes);
+			tracking.Pose(headAxes, headAxes);
 
 			renderTime -= time.deltaTime;
 			if (renderTime <= 0)
@@ -726,14 +735,14 @@ void HandleController(const STime& time)
 	iReport.bDevice = id;
 
 	// Set position data of axes
-	iReport.wAxisX =	g_Mapper->GetMappedAxis(0, JoyMapper::AXIS_X);
-	iReport.wAxisY =	g_Mapper->GetMappedAxis(0, JoyMapper::AXIS_Y);
-	iReport.wAxisZ =	g_Mapper->GetMappedAxis(0, JoyMapper::AXIS_Z);
-	iReport.wAxisXRot =	g_Mapper->GetMappedAxis(0, JoyMapper::AXIS_RX);
-	iReport.wAxisYRot =	g_Mapper->GetMappedAxis(0, JoyMapper::AXIS_RY);
-	iReport.wAxisZRot =	g_Mapper->GetMappedAxis(0, JoyMapper::AXIS_RZ);
-	iReport.wSlider =	g_Mapper->GetMappedAxis(0, JoyMapper::AXIS_SLIDER);
-	iReport.wDial =		g_Mapper->GetMappedAxis(0, JoyMapper::AXIS_DIAL);	
+	iReport.wAxisX =	g_Mapper->GetMappedAxis(0, AXIS_X);
+	iReport.wAxisY =	g_Mapper->GetMappedAxis(0, AXIS_Y);
+	iReport.wAxisZ =	g_Mapper->GetMappedAxis(0, AXIS_Z);
+	iReport.wAxisXRot =	g_Mapper->GetMappedAxis(0, AXIS_RX);
+	iReport.wAxisYRot =	g_Mapper->GetMappedAxis(0, AXIS_RY);
+	iReport.wAxisZRot =	g_Mapper->GetMappedAxis(0, AXIS_RZ);
+	iReport.wSlider =	g_Mapper->GetMappedAxis(0, AXIS_SLIDER);
+	iReport.wDial =		g_Mapper->GetMappedAxis(0, AXIS_DIAL);	
 
 	// Set position data of buttons
 	iReport.lButtons =		g_Mapper->GetMappedButtons(0);
@@ -750,14 +759,14 @@ void HandleController(const STime& time)
 	// Extra vJoy device
 	iReportEx.bDevice = (BYTE)DevID_2;
 
-	iReportEx.wAxisX =		g_Mapper->GetMappedAxis(1, JoyMapper::AXIS_X);
-	iReportEx.wAxisY =		g_Mapper->GetMappedAxis(1, JoyMapper::AXIS_Y);
-	iReportEx.wAxisZ =		g_Mapper->GetMappedAxis(1, JoyMapper::AXIS_Z);
-	iReportEx.wAxisXRot =	g_Mapper->GetMappedAxis(1, JoyMapper::AXIS_RX);
-	iReportEx.wAxisYRot =	g_Mapper->GetMappedAxis(1, JoyMapper::AXIS_RY);
-	iReportEx.wAxisZRot =	g_Mapper->GetMappedAxis(1, JoyMapper::AXIS_RZ);
-	iReportEx.wSlider =		g_Mapper->GetMappedAxis(1, JoyMapper::AXIS_SLIDER);
-	iReportEx.wDial =		g_Mapper->GetMappedAxis(1, JoyMapper::AXIS_DIAL);	
+	iReportEx.wAxisX =		g_Mapper->GetMappedAxis(1, AXIS_X);
+	iReportEx.wAxisY =		g_Mapper->GetMappedAxis(1, AXIS_Y);
+	iReportEx.wAxisZ =		g_Mapper->GetMappedAxis(1, AXIS_Z);
+	iReportEx.wAxisXRot =	g_Mapper->GetMappedAxis(1, AXIS_RX);
+	iReportEx.wAxisYRot =	g_Mapper->GetMappedAxis(1, AXIS_RY);
+	iReportEx.wAxisZRot =	g_Mapper->GetMappedAxis(1, AXIS_RZ);
+	iReportEx.wSlider =		g_Mapper->GetMappedAxis(1, AXIS_SLIDER);
+	iReportEx.wDial =		g_Mapper->GetMappedAxis(1, AXIS_DIAL);	
 
 	// Send position data to vJoy device
 	UpdateJoyDevice(DevID_1, iReport);

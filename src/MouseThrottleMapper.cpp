@@ -91,6 +91,7 @@ void MouseThrottleMapper::UpdateInternal(const STime& time)
 
 	static bool centering = false;
 	static double centeringTime = 0;
+	auto Recenter = []() { centering = true; centeringTime = 0; };
 
 	static bool mouseLook = false;
 	static bool viewChanged = false;
@@ -145,8 +146,7 @@ void MouseThrottleMapper::UpdateInternal(const STime& time)
 		{
 			if (useMouseLook)
 			{
-				centering = true;
-				centeringTime = 0;
+				Recenter();
 			}
 		}
 	}
@@ -172,8 +172,8 @@ void MouseThrottleMapper::UpdateInternal(const STime& time)
 			{
 				// Camera move
 				lateralMove = true;
-				m_AxisX = Clamp(m_AxisX - ((double)m_mouseDeltaX * lookSensitivity), -1, 1);
-				m_AxisY = Clamp(m_AxisY + ((double)m_mouseDeltaY * lookSensitivity), -1, 1);
+				m_HeadX = Clamp(m_HeadX + ((double)m_mouseDeltaX * lookSensitivity), -1, 1);
+				m_HeadY = Clamp(m_HeadY - ((double)m_mouseDeltaY * lookSensitivity), -1, 1);
 			}
 
 			const long axisDeadzone = 15;
@@ -191,10 +191,11 @@ void MouseThrottleMapper::UpdateInternal(const STime& time)
 	if (!lateralMove)
 	{
 		// Recenter horizontal
-		m_AxisX = MoveTo(m_AxisX, 0, time.deltaTime * (SLIDER_FOLLOW_SPEED));
+		//if (fabs(m_HeadX) < 0.08)
+		m_HeadX = Lerp(m_HeadX, 0, time.deltaTime * 10);
 		// Recenter vertical
-		if(fabs(m_AxisY) < 0.05)
-		m_AxisY = MoveTo(m_AxisY, 0, time.deltaTime * (SLIDER_FOLLOW_SPEED));
+		if(fabs(m_HeadY) < 0.08)
+		m_HeadY = Lerp(m_HeadY, 0, time.deltaTime * 10);
 	}
 
 	if (m_Mode == MODE_LEFT_MOD)
@@ -272,10 +273,7 @@ void MouseThrottleMapper::UpdateInternal(const STime& time)
 			double deadZone = 0.1 * (AxisToFov(m_ZoomAxis) / 90);
 			double sqMag = m_MouseStick.X * m_MouseStick.X + m_MouseStick.Y * m_MouseStick.Y * 0.25;
 			if (sqMag < deadZone * deadZone)
-			{
-				centering = true;
-				centeringTime = 0;
-			}
+				Recenter();
 		}
 
 		if (centering)
@@ -295,8 +293,8 @@ void MouseThrottleMapper::UpdateInternal(const STime& time)
 			//m_MouseStick.UpdateAngleMagnitude();
 		}
 
-		m_AxisRX = m_MouseStick.X;//Lerp(m_AxisRX, m_MouseStick.X, 0.5);
-		m_AxisRY = m_MouseStick.Y;//Lerp(m_AxisRY, m_MouseStick.Y, 0.5);
+		m_HeadRX = m_MouseStick.X;
+		m_HeadRY = m_MouseStick.Y;
 	}
 
 	//m_ButtonAxis.Update(time);

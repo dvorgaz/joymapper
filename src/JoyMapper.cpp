@@ -427,6 +427,13 @@ JoyMapper::JoyMapper()
 	m_Ex_AxisRY = 0;
 	m_Ex_AxisRZ = 0;
 
+	m_HeadX = 0;
+	m_HeadY = 0;
+	m_HeadZ = 0;
+	m_HeadRX = 0;
+	m_HeadRY = 0;
+	m_HeadRZ = 0;
+
 	memset(m_LogicalButtons, 0, sizeof(long) * NUM_BUTTON_EXTENSIONS);
 
 	m_ScrollDirection = 0;
@@ -655,32 +662,68 @@ long JoyMapper::GetMappedAxis(unsigned int index, AxisID axis)
 	{
 		switch (axis)
 		{
-		case JoyMapper::AXIS_X:			return AxisToLong(m_AxisX);
-		case JoyMapper::AXIS_Y:			return AxisToLong(-m_AxisY);
-		case JoyMapper::AXIS_Z:			return AxisToLong(m_AxisZ);
-		case JoyMapper::AXIS_RX:		return AxisToLong(m_AxisRX);
-		case JoyMapper::AXIS_RY:		return AxisToLong(-m_AxisRY);
-		case JoyMapper::AXIS_RZ:		return HalfAxisToLong(m_AxisRZ);
-		case JoyMapper::AXIS_SLIDER:	return HalfAxisToLong(m_Slider);
-		case JoyMapper::AXIS_DIAL:		return HalfAxisToLong(m_Dial);		
+		case AXIS_X:		return AxisToLong(m_AxisX);
+		case AXIS_Y:		return AxisToLong(-m_AxisY);
+		case AXIS_Z:		return AxisToLong(m_AxisZ);
+		case AXIS_RX:		return AxisToLong(m_AxisRX);
+		case AXIS_RY:		return AxisToLong(-m_AxisRY);
+		case AXIS_RZ:		return HalfAxisToLong(m_AxisRZ);
+		case AXIS_SLIDER:	return HalfAxisToLong(m_Slider);
+		case AXIS_DIAL:		return HalfAxisToLong(m_Dial);		
 		}
 	}
 	else if (index == 1)
 	{
 		switch (axis)
 		{
-		case JoyMapper::AXIS_X:			return AxisToLong(m_Ex_AxisX);
-		case JoyMapper::AXIS_Y:			return AxisToLong(-m_Ex_AxisY);
-		//case JoyMapper::AXIS_Z:			return AxisToLong(m_AxisZ);
-		case JoyMapper::AXIS_RX:		return AxisToLong(m_Ex_AxisRX);
-		case JoyMapper::AXIS_RY:		return AxisToLong(-m_Ex_AxisRY);
-		case JoyMapper::AXIS_RZ:		return HalfAxisToLong(m_Ex_AxisRZ);
-		//case JoyMapper::AXIS_SLIDER:	return HalfAxisToLong(m_Slider);
-		//case JoyMapper::AXIS_DIAL:		return HalfAxisToLong(m_Dial);		
+		case AXIS_X:		return AxisToLong(m_Ex_AxisX);
+		case AXIS_Y:		return AxisToLong(-m_Ex_AxisY);
+		//case AXIS_Z:		return AxisToLong(m_AxisZ);
+		case AXIS_RX:		return AxisToLong(m_Ex_AxisRX);
+		case AXIS_RY:		return AxisToLong(-m_Ex_AxisRY);
+		case AXIS_RZ:		return HalfAxisToLong(m_Ex_AxisRZ);
+		//case AXIS_SLIDER:	return HalfAxisToLong(m_Slider);
+		//case AXIS_DIAL:	return HalfAxisToLong(m_Dial);		
 		}
 	}
 
 	return 0;
+}
+
+void JoyMapper::GetHeadAxes(double* outAxes)
+{
+	double yaw = m_HeadRX * M_PI;	
+	double sinYaw = sin(yaw);
+	double cosYaw = cos(yaw);
+
+	m_HeadZ = 0.5 * max(sin(-m_HeadRY * M_PI / 2), 0);
+
+#if 0
+	double pitch = m_HeadRY * M_PI / 2;
+	double sinPitch = sin(pitch);
+	double cosPitch = cos(pitch);
+
+	double headY = m_HeadY * cosPitch + m_HeadZ * sinPitch;
+	double headZ = m_HeadZ * cosPitch - m_HeadY * sinPitch;
+
+	double headX = m_HeadX * cosYaw + headZ * sinYaw;
+	double headZ2 = headZ * cosYaw - m_HeadX * sinYaw;
+
+	headX = headX;
+	headY = headY;
+	headZ = headZ2;
+#else
+	double headX = m_HeadX * cosYaw + m_HeadZ * sinYaw;
+	double headY = m_HeadY;
+	double headZ = m_HeadZ * cosYaw - m_HeadX * sinYaw;
+#endif
+
+	outAxes[AXIS_X] = -headX * 45;
+	outAxes[AXIS_Y] = headY * 45;
+	outAxes[AXIS_Z] = -headZ * 15;
+	outAxes[AXIS_RX] = m_HeadRX * 180;
+	outAxes[AXIS_RY] = m_HeadRY * 135;
+	outAxes[AXIS_RZ] = m_HeadRZ * 180;
 }
 
 void JoyMapper::GetVibration(unsigned short& left, unsigned short& right)
