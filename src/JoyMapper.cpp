@@ -283,6 +283,23 @@ void JoyMapper::RadialButtons::AddLogicalButtons(std::function<void(bool)> addFu
 	activeButtonIdx = -1;
 }
 
+void JoyMapper::RadialButtons::SetHatButtons(bool up, bool down, bool left, bool right)
+{
+	//static unsigned long mapping[8] = { 18000, 22500, 27000, 31500, 0, 4500, 9000, 13500 };
+	//static unsigned long mapping[3][3] = { {31500,0,4500}, {27000,-1,9000}, {22500,18000,13500} };
+	static unsigned long mapping[3][3] = { {3,4,5}, {2,-1,6}, {1,0,7} }; // Indices into the mapping used in GetMappedPov
+
+	int x = 1;
+	int y = 1;
+
+	if (up)		y -= 1;
+	if (right)	x += 1;
+	if (down)	y += 1;
+	if (left)	x -= 1;	
+
+	activeButtonIdx = mapping[y][x];
+}
+
 void JoyMapper::SpecialButton::SetTempo(unsigned long button, unsigned char mask)
 {
 	type = SBT_TEMPO;

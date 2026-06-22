@@ -183,6 +183,7 @@ protected:
 		
 		void Update(const STime& time);
 		void AddLogicalButtons(std::function<void(bool)> addFunc);
+		void SetHatButtons(bool up, bool down, bool left, bool right);
 	};
 
 	enum SpecialButtonType
