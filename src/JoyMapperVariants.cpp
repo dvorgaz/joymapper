@@ -87,6 +87,8 @@ void DefaultMapper::UpdateInternal(const STime& time)
 	if(m_ButtonAxis.values[0] != FovToAxis(m_FovDefault))
 		m_ButtonAxis.SetValues(2, FovToAxis(m_FovDefault), FovToAxis(45));
 
+	m_ThrottleDisplay = AXD_HIDE;
+
 	if (m_Mode == MODE_DEFAULT)
 	{
 		if (BTNDOWN(throttleBtn))
@@ -96,6 +98,9 @@ void DefaultMapper::UpdateInternal(const STime& time)
 				m_StickSlider.detentUnlocked = true;
 
 			m_StickSlider.Update(time);
+
+			if(time.time - BTNTIME(throttleBtn) > TEMPO_TIME)
+				m_ThrottleDisplay = AXD_SHOW;
 		}
 	}
 
