@@ -6,6 +6,7 @@
 #include <math.h>
 #include <hidsdi.h>
 #include <stdio.h>
+#include <algorithm>
 
 #include "public.h"
 #include <malloc.h>
@@ -58,18 +59,14 @@ void MsgBox(HWND hWnd, const char* str, ...);
 JOYSTICK_POSITION_V2 iReport; // The structure that holds the full position data
 JOYSTICK_POSITION_V2 iReportEx;
 
-//#define MAPPER_TYPE DefaultMapper
-//#define MAPPER_TYPE AlternateMapper_2
-//#define MAPPER_TYPE JoystickMapper
-//#define MAPPER_TYPE BMSMapper
-#define MAPPER_TYPE MouseThrottleMapper
-
 //
 // Global variables
 //
 JoyMapper*			g_Mapper = nullptr;
 RenderDevice		g_RenderDevice;
 JoyMapperRenderer	g_MapperRenderer;
+
+JoyMapper* GetMapper(const wchar_t* mapperName);
 
 HWND		g_hWnd = nullptr;
 HINSTANCE	g_hInst = nullptr;
@@ -580,7 +577,26 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		goto Exit;
 #endif
 
-	g_Mapper = new MAPPER_TYPE();
+	LPWSTR* szArglist;
+	int nArgs;
+
+	szArglist = CommandLineToArgvW(GetCommandLineW(), &nArgs);
+
+	if (nArgs >= 2)
+	{
+		g_Mapper = GetMapper(szArglist[1]);
+	}
+	else
+	{
+		g_Mapper = GetMapper(L"Default");
+	}
+
+	if (!g_Mapper)
+	{
+		MsgBox(g_hWnd, "Invalid mapper argument\nCannot continue\n");
+		goto Exit;
+	}
+
 	g_Mapper->Init();
 	g_MapperRenderer = JoyMapperRenderer(&g_RenderDevice, g_Mapper);
 	JoyMapperRenderer* ptr = &g_MapperRenderer;
@@ -814,7 +830,33 @@ void MsgBox(HWND hWnd, const char* str, ...)
 	va_start(vl, str);
 	char buff[1024];  // May need to be bigger
 	vsprintf(buff, str, vl);
-	MessageBox(hWnd, buff, "MsgTitle", MB_OK | MB_ICONERROR);
+	MessageBox(hWnd, buff, "Message", MB_OK | MB_ICONERROR);
+}
+
+JoyMapper* GetMapper(const wchar_t* mapperName)
+{
+	std::wstring names[] = {L"Default", L"MouseThrottle"};
+	int num = sizeof(names) / sizeof(*names);
+
+	std::wstring name = mapperName;
+	std::transform(name.begin(), name.end(), name.begin(), ::toupper);
+
+	int idx = 0;
+	for (; idx < num; ++idx)
+	{		
+		std::transform(names[idx].begin(), names[idx].end(), names[idx].begin(), ::toupper);
+
+		if (names[idx].compare(name) == 0)
+			break;
+	}
+
+	switch (idx)
+	{
+	case 0: return new DefaultMapper();
+	case 1: return new MouseThrottleMapper();
+	}
+
+	return nullptr;
 }
 
 void SetupCalibrations()
