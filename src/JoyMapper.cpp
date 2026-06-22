@@ -168,13 +168,6 @@ void JoyMapper::StickView::Update(bool enableInput, const STime& time)
 		x = Clamp(x + absOffsetX, -1, 1);
 		y = Clamp(y + absOffsetY, -1, 1);
 
-		if (stick->Magnitude > 0.99)
-		{
-			double max = max(fabs(stick->X), fabs(stick->Y));
-			x /= max;
-			y /= max;
-		}
-
 		*outputX = Clamp(Lerp(*outputX, x, time.deltaTime * ABSOLUTE_VIEW_SPEED), -1, 1);
 		*outputY = Clamp(Lerp(*outputY, y, time.deltaTime * ABSOLUTE_VIEW_SPEED), -1, 1);
 	}
@@ -310,6 +303,28 @@ JoyMapper::ButtonAxis& JoyMapper::ButtonAxis::AddValue(double value)
 	if (numValues < MAX_BUTTON_ON_AXIS)
 	{
 		values[numValues++] = value;
+	}
+
+	return *this;
+}
+
+JoyMapper::ButtonAxis& JoyMapper::ButtonAxis::SetValues(int numVals, ...)
+{
+	if (numVals > 0 && numVals <= MAX_BUTTON_ON_AXIS)
+	{
+		va_list vl;
+
+		va_start(vl, numVals);
+
+		for (int i = 0; i < numVals; ++i)
+		{
+			double val = va_arg(vl, double);
+			values[i] = val;
+		}
+
+		va_end(vl);
+
+		numValues = numVals;
 	}
 
 	return *this;
@@ -964,8 +979,12 @@ void JoyMapper::HandleMouse(const Stick& stick, unsigned long btnLeft, unsigned 
 
 	if (stickView && time && stick.Magnitude > MOUSE_VIEW_THRESHOLD)
 	{
-		const double scaling = (stick.Magnitude - MOUSE_VIEW_THRESHOLD) / (1.0 - MOUSE_VIEW_THRESHOLD);
-		const double speed = PowerCurve(scaling, STICK_VIEW_CURVE) * MOUSE_VIEW_SPEED / stick.Magnitude;
+		double scaling = (stick.Magnitude - MOUSE_VIEW_THRESHOLD) / (1.0 - MOUSE_VIEW_THRESHOLD);
+		double speed = PowerCurve(scaling, STICK_VIEW_CURVE) * MOUSE_VIEW_SPEED / stick.Magnitude;
+
+		if(stickView->fovAxis)
+			speed *= AxisToFov(*stickView->fovAxis) / 90;
+
 		*stickView->outputX = Clamp(*stickView->outputX + stick.X * time->deltaTime * speed, -1, 1);
 		*stickView->outputY = Clamp(*stickView->outputY + stick.Y * time->deltaTime * speed, -1, 1);
 	}

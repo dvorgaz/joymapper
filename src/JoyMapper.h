@@ -2,6 +2,7 @@
 #include <functional>
 #include <string>
 #include <vector>
+#include <stdarg.h>
 
 #include "Common.h"
 #include "ButtonDefines.h"
@@ -215,6 +216,7 @@ protected:
 		double speedModifier;
 
 		ButtonAxis& AddValue(double value);
+		ButtonAxis& SetValues(int numVals, ...);
 		void Update(const STime& time);
 		void CycleValue(bool reverse = false);
 		void MoveTowardNextValue();

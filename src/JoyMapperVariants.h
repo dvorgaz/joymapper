@@ -9,7 +9,11 @@ public:
 private:
 	StickSlider m_StickSlider;
 	StickView m_StickView;
+	StickView m_StickMove;
 	ButtonAxis m_ButtonAxis;
+
+	double m_TempX;
+	double m_TempY;
 
 	void UpdateInternal(const STime& time) override;
 	void UpdateLogicalButtonsInternal(int& ctr, const STime& time) override;

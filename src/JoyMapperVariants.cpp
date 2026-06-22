@@ -14,9 +14,16 @@ DefaultMapper::DefaultMapper()
 
 	m_StickView = { 0 };
 	m_StickView.stick = &m_RStick;
-	m_StickView.outputX = &m_Ex_AxisRX;
-	m_StickView.outputY = &m_Ex_AxisRY;
+	m_StickView.absolute = true;
+	m_StickView.outputX = &m_TempX;
+	m_StickView.outputY = &m_TempY;
 	m_StickView.SetFovSettings(&m_Dial, -0.2, 0.65);
+
+	m_StickMove = { 0 };
+	m_StickMove.stick = &m_RStick;
+	m_StickMove.absolute = true;
+	m_StickMove.outputX = &m_HeadX;
+	m_StickMove.outputY = &m_HeadY;
 
 	m_SpecialButtons[0].SetTempo(JOYPAD_START, 0xFF);
 	m_SpecialButtons[1].SetTempo(JOYPAD_DPAD_LEFT, FLAG(MODE_DEFAULT));
@@ -32,7 +39,10 @@ DefaultMapper::DefaultMapper()
 
 	m_ButtonAxis = { 0 };
 	m_ButtonAxis.output = &m_Dial;
-	m_ButtonAxis.AddValue(0.65).AddValue(0.15);
+	m_ButtonAxis.SetValues(2, FovToAxis(m_FovDefault), FovToAxis(45));
+
+	m_TempX = 0;
+	m_TempY = 0;
 
 	m_MouseButtons[0] = JOYPAD_DPAD_LEFT;
 	m_MouseButtons[1] = JOYPAD_DPAD_RIGHT;
@@ -50,10 +60,9 @@ void DefaultMapper::UpdateInternal(const STime& time)
 {
 	const unsigned long mouseBtn = JOYPAD_RIGHT_THUMB;
 	const unsigned long throttleBtn = JOYPAD_LEFT_THUMB;
-	const unsigned long viewCenterBtn = JOYPAD_LEFT_THUMB;
 
 	// Modifiers
-	if (BTNDOWN(mouseBtn) && time.time - BTNTIME(mouseBtn) >= TEMPO_TIME)
+	if (BTNDOWN(mouseBtn))
 	{
 		m_Mode = MODE_MOUSE;
 	}
@@ -66,14 +75,17 @@ void DefaultMapper::UpdateInternal(const STime& time)
 	}
 
 	// Roll and pitch
-	m_AxisX = m_LStick.X;
-	m_AxisY = m_LStick.Y;		
-
-	if (BTNRELEASED(viewCenterBtn) && time.time - BTNTIME(viewCenterBtn) < TEMPO_TIME)
-		m_StickView.Recenter();
+	//m_AxisX = m_LStick.X;
+	//m_AxisY = m_LStick.Y;
 
 	m_ButtonAxis.Update(time);
 	m_StickView.Update(!BTNDOWN(throttleBtn) && (m_Mode == MODE_DEFAULT), time);
+	m_StickMove.Update(BTNDOWN(throttleBtn) && (m_Mode == MODE_MOUSE), time);
+	m_HeadRX = m_TempX;
+	m_HeadRY = Clamp(m_TempY * 2, -1, 1);
+
+	if(m_ButtonAxis.values[0] != FovToAxis(m_FovDefault))
+		m_ButtonAxis.SetValues(2, FovToAxis(m_FovDefault), FovToAxis(45));
 
 	if (m_Mode == MODE_DEFAULT)
 	{
@@ -85,13 +97,12 @@ void DefaultMapper::UpdateInternal(const STime& time)
 
 			m_StickSlider.Update(time);
 		}
-		else
-		{
-			if (BTNRELEASED(mouseBtn) && time.time - BTNTIME(mouseBtn) < TEMPO_TIME)
-				m_ButtonAxis.CycleValue();
+	}
 
-			m_StickView.lastUpdateTime = time.time;
-		}
+	if (m_Mode == MODE_DEFAULT || m_Mode == MODE_MOUSE)
+	{
+		if (BTNRELEASED(throttleBtn) && time.time - BTNTIME(throttleBtn) < TEMPO_TIME)
+			m_ButtonAxis.CycleValue();
 	}
 
 	switch (m_Mode)
@@ -100,8 +111,8 @@ void DefaultMapper::UpdateInternal(const STime& time)
 		m_VirtualPOV[0].Update(time);
 		break;
 	case MODE_LEFT_MOD:
-		m_AxisRX = m_RStick.X;
-		m_AxisRY = m_RStick.Y;
+		m_AxisX = m_RStick.X;
+		m_AxisY = m_RStick.Y;
 		break;
 	case MODE_BOTH_MOD:
 		m_VirtualPOV[1].Update(time);
@@ -109,13 +120,14 @@ void DefaultMapper::UpdateInternal(const STime& time)
 	}
 
 	if (m_Mode == MODE_MOUSE)
-	{
-		HandleMouse(m_RStick, &m_StickView, &time);
+	{		
+		if (!BTNDOWN(throttleBtn))
+			HandleMouse(m_RStick, &m_StickView, &time);
 	}
 
 #if !USE_PEDALS
 	// Rudder
-	m_AxisZ = m_RTrigger - m_LTrigger;
+	//m_AxisZ = m_RTrigger - m_LTrigger;
 #endif
 
 	// Wheel brake
