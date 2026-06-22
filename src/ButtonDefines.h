@@ -97,3 +97,79 @@
 #define USE_SECOND_VJOY 0
 #define USE_PEDALS 0
 #define USE_KG12 0
+
+//-----------------------------------------------------------------------------
+// Gunfighter generic buttons
+//-----------------------------------------------------------------------------
+
+#if USE_KG12
+#define GF_DEVICE_ID		VKBKG12
+
+#define GF_TRIGGER_1		GF_KG12_TRIGGER
+#define GF_TRIGGER_2		GF_KG12_TRIGGER
+#define GF_WPN_REL			GF_KG12_TOP
+#define GF_R_SIDE			0
+#define GF_PINKIE			GF_KG12_PINKIE
+#define GF_TRIM_UP			GF_KG12_HAT_UP
+#define GF_TRIM_RIGHT		GF_KG12_HAT_RIGHT
+#define GF_TRIM_DOWN		GF_KG12_HAT_DOWN
+#define GF_TRIM_LEFT		GF_KG12_HAT_LEFT
+#define GF_TRIM_CENTER		0
+#define GF_DMS_UP			0
+#define GF_DMS_RIGHT		0
+#define GF_DMS_DOWN			0
+#define GF_DMS_LEFT			0
+#define GF_DMS_CENTER		0
+#define GF_TMS_UP			0
+#define GF_TMS_RIGHT		0
+#define GF_TMS_DOWN			0
+#define GF_TMS_LEFT			0
+#define GF_TMS_CENTER		0
+#define GF_EX_1				0
+#define GF_EX_2				0
+#define GF_EX_3				0
+
+#define GF_MENU_ACT_1		GF_KG12_HAT_UP
+#define GF_MENU_ACT_2		GF_KG12_TOP
+#define GF_MENU_ACCEPT		GF_KG12_TOP
+#define GF_MENU_CANCEL		GF_KG12_PINKIE
+#define GF_MENU_UP			GF_KG12_HAT_UP
+#define GF_MENU_DOWN		GF_KG12_HAT_DOWN
+#define GF_MENU_LEFT		GF_KG12_HAT_LEFT
+#define GF_MENU_RIGHT		GF_KG12_HAT_RIGHT
+#else
+#define GF_DEVICE_ID		VKBSTICK
+
+#define GF_TRIGGER_1		GF_KOS_TRIGGER_1	
+#define GF_TRIGGER_2		GF_KOS_TRIGGER_2	
+#define GF_WPN_REL			GF_KOS_WPN_REL		
+#define GF_R_SIDE			GF_KOS_R_SIDE		
+#define GF_PINKIE			GF_KOS_PINKIE
+#define GF_TRIM_UP			GF_KOS_TRIM_UP		
+#define GF_TRIM_RIGHT		GF_KOS_TRIM_RIGHT	
+#define GF_TRIM_DOWN		GF_KOS_TRIM_DOWN	
+#define GF_TRIM_LEFT		GF_KOS_TRIM_LEFT	
+#define GF_TRIM_CENTER		GF_KOS_TRIM_CENTER	
+#define GF_DMS_UP			GF_KOS_DMS_UP		
+#define GF_DMS_RIGHT		GF_KOS_DMS_RIGHT	
+#define GF_DMS_DOWN			GF_KOS_DMS_DOWN		
+#define GF_DMS_LEFT			GF_KOS_DMS_LEFT		
+#define GF_DMS_CENTER		GF_KOS_DMS_CENTER
+#define GF_TMS_UP			GF_KOS_TMS_UP		
+#define GF_TMS_RIGHT		GF_KOS_TMS_RIGHT	
+#define GF_TMS_DOWN			GF_KOS_TMS_DOWN		
+#define GF_TMS_LEFT			GF_KOS_TMS_LEFT		
+#define GF_TMS_CENTER		GF_KOS_TMS_CENTER	
+#define GF_EX_1				GF_KOS_THUMB
+#define GF_EX_2				0
+#define GF_EX_3				0
+
+#define GF_MENU_ACT_1		GF_KOS_R_SIDE
+#define GF_MENU_ACT_2		GF_KOS_WPN_REL
+#define GF_MENU_ACCEPT		GF_KOS_WPN_REL
+#define GF_MENU_CANCEL		GF_KOS_R_SIDE
+#define GF_MENU_UP			GF_KOS_TRIM_UP
+#define GF_MENU_DOWN		GF_KOS_TRIM_DOWN
+#define GF_MENU_LEFT		GF_KOS_TRIM_LEFT
+#define GF_MENU_RIGHT		GF_KOS_TRIM_RIGHT
+#endif

@@ -5,6 +5,8 @@
 
 MouseThrottleMapper::MouseThrottleMapper()
 {
+	m_deviceID = GF_DEVICE_ID;
+
 	m_MouseStick = { 0 };
 
 	m_ABDetent = 0.8;
@@ -13,33 +15,16 @@ MouseThrottleMapper::MouseThrottleMapper()
 	m_ThrottleAxis = 0.0;
 	m_axisMode = AM_NONE;
 	m_deltaX = 0;
-	m_deltaY = 0;
+	m_deltaY = 0;	
 
-#if USE_KG12
-	m_deviceID = VKBKG12;
-
-	m_MenuActivateBtn1 = GF_KG12_HAT_UP;
-	m_MenuActivateBtn2 = GF_KG12_TOP;
-	m_MenuAcceptBtn = GF_KG12_TOP;
-	m_MenuCancelBtn = GF_KG12_PINKIE;
-	m_MenuUpBtn = GF_KG12_HAT_UP;
-	m_MenuRightBtn = GF_KG12_HAT_RIGHT;
-	m_MenuDownBtn = GF_KG12_HAT_DOWN;
-	m_MenuLeftBtn = GF_KG12_HAT_LEFT;
-
-#else
-	m_deviceID = VKBSTICK;
-
-	m_MenuActivateBtn1 = GF_KOS_R_SIDE;
-	m_MenuActivateBtn2 = GF_KOS_WPN_REL;
-	m_MenuAcceptBtn = GF_KOS_WPN_REL;
-	m_MenuCancelBtn = GF_KOS_R_SIDE;
-	m_MenuUpBtn = GF_KOS_TRIM_UP;
-	m_MenuRightBtn = GF_KOS_TRIM_RIGHT;
-	m_MenuDownBtn = GF_KOS_TRIM_DOWN;
-	m_MenuLeftBtn = GF_KOS_TRIM_LEFT;
-
-#endif
+	m_MenuActivateBtn1 = GF_MENU_ACT_1;
+	m_MenuActivateBtn2 = GF_MENU_ACT_2;
+	m_MenuAcceptBtn = GF_MENU_ACCEPT;
+	m_MenuCancelBtn = GF_MENU_CANCEL;
+	m_MenuUpBtn = GF_MENU_UP;
+	m_MenuRightBtn = GF_MENU_RIGHT;
+	m_MenuDownBtn = GF_MENU_DOWN;
+	m_MenuLeftBtn = GF_MENU_LEFT;
 
 	m_ButtonAxis = { 0 };
 	m_ButtonAxis.output = &m_Dial;
@@ -63,11 +48,7 @@ MouseThrottleMapper::MouseThrottleMapper()
 
 void MouseThrottleMapper::UpdateInternal(const STime& time)
 {
-#if USE_KG12
-	const unsigned long brakeBtn = GF_KG12_TRIGGER;
-#else
-	const unsigned long brakeBtn = GF_KOS_TRIGGER_1;
-#endif
+	const unsigned long brakeBtn = GF_TRIGGER_1;
 
 	const bool useMouseLook = true;
 	const int throttleBtn = 1;
@@ -306,6 +287,18 @@ void MouseThrottleMapper::UpdateInternal(const STime& time)
 
 	// Rudder
 	m_AxisZ = m_PhysAxisZ;
+
+	for (int i = 0; i < MAX_VIRTUAL_POVS; ++i)
+	{
+		if (m_Mode == i)
+		{
+			m_VirtualPOV[i].SetHatButtons(BTNDOWN(GF_TRIM_UP), BTNDOWN(GF_TRIM_DOWN), BTNDOWN(GF_TRIM_LEFT), BTNDOWN(GF_TRIM_RIGHT));
+		}
+		else
+		{
+			m_VirtualPOV[i].activeButtonIdx = -1;
+		}
+	}
 }
 
 void MouseThrottleMapper::UpdateLogicalButtonsInternal(int& ctr, const STime& time)
@@ -319,41 +312,33 @@ void MouseThrottleMapper::UpdateLogicalButtonsInternal(int& ctr, const STime& ti
 
 		if (IsMode(FLAG(MODE_DEFAULT) | FLAG(MODE_LEFT_MOD) | FLAG(MODE_RIGHT_MOD)))
 		{
-#if USE_KG12
-			SetLogicalButton(ctr++, enabled && BtnDown(GF_KG12_TRIGGER));
-			SetLogicalButton(ctr++, enabled && BtnDown(GF_KG12_TOP));
-			SetLogicalButton(ctr++, enabled && BtnDown(GF_KG12_PINKIE));
-			SetLogicalButton(ctr++, enabled && BtnDown(GF_KG12_HAT_UP));
-			SetLogicalButton(ctr++, enabled && BtnDown(GF_KG12_HAT_RIGHT));
-			SetLogicalButton(ctr++, enabled && BtnDown(GF_KG12_HAT_DOWN));
-			SetLogicalButton(ctr++, enabled && BtnDown(GF_KG12_HAT_LEFT));
-#else
-			SetLogicalButton(ctr++, enabled && BtnDown(GF_KOS_TRIGGER_1));
-			SetLogicalButton(ctr++, enabled && BtnDown(GF_KOS_TRIGGER_2));
-			SetLogicalButton(ctr++, enabled && BtnDown(GF_KOS_WPN_REL));
-			SetLogicalButton(ctr++, enabled && BtnDown(GF_KOS_R_SIDE));
-			SetLogicalButton(ctr++, enabled && BtnDown(GF_KOS_PINKIE));
-			SetLogicalButton(ctr++, enabled && BtnDown(GF_KOS_TMS_UP));
-			SetLogicalButton(ctr++, enabled && BtnDown(GF_KOS_TMS_RIGHT));
-			SetLogicalButton(ctr++, enabled && BtnDown(GF_KOS_TMS_DOWN));
-			SetLogicalButton(ctr++, enabled && BtnDown(GF_KOS_TMS_LEFT));
-			SetLogicalButton(ctr++, enabled && BtnDown(GF_KOS_TMS_CENTER));
-			SetLogicalButton(ctr++, enabled && BtnDown(GF_KOS_TRIM_UP));
-			SetLogicalButton(ctr++, enabled && BtnDown(GF_KOS_TRIM_RIGHT));
-			SetLogicalButton(ctr++, enabled && BtnDown(GF_KOS_TRIM_DOWN));
-			SetLogicalButton(ctr++, enabled && BtnDown(GF_KOS_TRIM_LEFT));
-			SetLogicalButton(ctr++, enabled && BtnDown(GF_KOS_TRIM_CENTER));
-			SetLogicalButton(ctr++, enabled && BtnDown(GF_KOS_DMS_UP));
-			SetLogicalButton(ctr++, enabled && BtnDown(GF_KOS_DMS_RIGHT));
-			SetLogicalButton(ctr++, enabled && BtnDown(GF_KOS_DMS_DOWN));
-			SetLogicalButton(ctr++, enabled && BtnDown(GF_KOS_DMS_LEFT));
-			SetLogicalButton(ctr++, enabled && BtnDown(GF_KOS_DMS_CENTER));
-			//SetLogicalButton(ctr++, enabled && BtnDown(GF_KOS_THUMB));
-#endif
+			SetLogicalButton(ctr++, enabled && BtnDown(GF_TRIGGER_1));
+			SetLogicalButton(ctr++, enabled && BtnDown(GF_TRIGGER_2));
+			SetLogicalButton(ctr++, enabled && BtnDown(GF_WPN_REL));
+			SetLogicalButton(ctr++, enabled && BtnDown(GF_R_SIDE));
+			SetLogicalButton(ctr++, enabled && BtnDown(GF_PINKIE));
+			//SetLogicalButton(ctr++, enabled && BtnDown(GF_TRIM_UP));
+			//SetLogicalButton(ctr++, enabled && BtnDown(GF_TRIM_RIGHT));
+			//SetLogicalButton(ctr++, enabled && BtnDown(GF_TRIM_DOWN));
+			//SetLogicalButton(ctr++, enabled && BtnDown(GF_TRIM_LEFT));
+			SetLogicalButton(ctr++, enabled && BtnDown(GF_TRIM_CENTER));
+			SetLogicalButton(ctr++, enabled && BtnDown(GF_DMS_UP));
+			SetLogicalButton(ctr++, enabled && BtnDown(GF_DMS_RIGHT));
+			SetLogicalButton(ctr++, enabled && BtnDown(GF_DMS_DOWN));
+			SetLogicalButton(ctr++, enabled && BtnDown(GF_DMS_LEFT));
+			SetLogicalButton(ctr++, enabled && BtnDown(GF_DMS_CENTER));
+			SetLogicalButton(ctr++, enabled && BtnDown(GF_TMS_UP));
+			SetLogicalButton(ctr++, enabled && BtnDown(GF_TMS_RIGHT));
+			SetLogicalButton(ctr++, enabled && BtnDown(GF_TMS_DOWN));
+			SetLogicalButton(ctr++, enabled && BtnDown(GF_TMS_LEFT));
+			SetLogicalButton(ctr++, enabled && BtnDown(GF_TMS_CENTER));
+			SetLogicalButton(ctr++, enabled && BtnDown(GF_EX_1));
+			SetLogicalButton(ctr++, enabled && BtnDown(GF_EX_2));
+			SetLogicalButton(ctr++, enabled && BtnDown(GF_EX_3));
 		}
 	}
 
-	const unsigned long timeBtn = GF_KOS_THUMB;
+	const unsigned long timeBtn = GF_EX_1;
 	const double pulseDelay = 1.0 / 5;
 	const int maxPulse = 6;
 
