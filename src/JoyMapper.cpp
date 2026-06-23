@@ -459,6 +459,8 @@ JoyMapper::JoyMapper()
 	m_Ex_AxisRY = 0;
 	m_Ex_AxisRZ = 0;
 
+	memset(m_HeadOutput, 0, sizeof(double) * 6);
+
 	m_HeadX = 0;
 	m_HeadY = 0;
 	m_HeadZ = 0;
@@ -482,6 +484,12 @@ JoyMapper::JoyMapper()
 	m_mouseDeltaY = 0;
 	memset(m_mouseExBtn, 0, sizeof(bool) * 2);
 	memset(m_mouseExBtn_prev, 0, sizeof(bool) * 2);
+}
+
+JoyMapper::~JoyMapper()
+{
+	if (m_Filter)
+		delete m_Filter;
 }
 
 void JoyMapper::Init()
@@ -554,6 +562,10 @@ void JoyMapper::Update(const STime& time)
 	}
 
 	memcpy(m_KeysPrev, m_Keys, sizeof(bool) * MAX_KEYS);
+
+	UpdateHeadAxes(m_HeadOutput);
+	if (m_Filter)
+		m_Filter->Filter(m_HeadOutput, m_HeadOutput, time);
 }
 
 void JoyMapper::SetButtons(unsigned long buttons)
@@ -723,6 +735,11 @@ long JoyMapper::GetMappedAxis(unsigned int index, AxisID axis)
 }
 
 void JoyMapper::GetHeadAxes(double* outAxes)
+{
+	memcpy(outAxes, m_HeadOutput, sizeof(double) * 6);
+}
+
+void JoyMapper::UpdateHeadAxes(double* outAxes)
 {
 	double yaw = m_HeadRX * M_PI;	
 	double sinYaw = sin(yaw);

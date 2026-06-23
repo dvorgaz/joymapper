@@ -279,6 +279,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="AlternateMapper.cpp" />
+    <ClCompile Include="Filter.cpp" />
     <ClCompile Include="HalfpadMapper.cpp" />
     <ClCompile Include="HotasMapper.cpp" />
     <ClCompile Include="JoyMapper.cpp" />
@@ -294,6 +295,7 @@
     <ClInclude Include="..\inc\vjoyinterface.h" />
     <ClInclude Include="ButtonDefines.h" />
     <ClInclude Include="Common.h" />
+    <ClInclude Include="Filter.h" />
     <ClInclude Include="JoyMapper.h" />
     <ClInclude Include="JoyMapperRenderer.h" />
     <ClInclude Include="JoyMapperVariants.h" />

@@ -6,6 +6,7 @@
 
 #include "Common.h"
 #include "ButtonDefines.h"
+#include "Filter.h"
 
 //-----------------------------------------------------------------------------
 // Windows mouse events
@@ -74,12 +75,6 @@ int GetShiftAmount(unsigned long flag);
 #define NUM_MOUSE_BUTTONS		4
 #define MAX_BUTTON_ON_AXIS		3
 #define MAX_KEYS				245
-
-struct STime
-{
-	double time;
-	double deltaTime;
-};
 
 class JoyMapper
 {
@@ -329,6 +324,8 @@ protected:
 	double m_Ex_AxisRY;
 	double m_Ex_AxisRZ;
 
+	double m_HeadOutput[6];
+
 	// Headtracking axes
 	double m_HeadX;
 	double m_HeadY;
@@ -336,6 +333,8 @@ protected:
 	double m_HeadRX;
 	double m_HeadRY;
 	double m_HeadRZ;
+
+	IFilter* m_Filter = nullptr;
 
 	long m_LogicalButtons[NUM_BUTTON_EXTENSIONS];
 	int m_ScrollDirection;
@@ -375,8 +374,11 @@ protected:
 	virtual void UpdateInternal(const STime& time) = 0;
 	virtual void UpdateLogicalButtonsInternal(int& ctr, const STime& time) = 0;
 
+	void UpdateHeadAxes(double* outAxes);
+
 public:
 	JoyMapper();
+	~JoyMapper();
 
 	void Init();
 

@@ -13,3 +13,9 @@ enum AxisID
 	AXIS_SLIDER,
 	AXIS_DIAL,
 };
+
+struct STime
+{
+	double time;
+	double deltaTime;
+};
