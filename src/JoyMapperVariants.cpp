@@ -25,7 +25,7 @@ DefaultMapper::DefaultMapper()
 	m_StickMove.outputX = &m_HeadX;
 	m_StickMove.outputY = &m_HeadY;
 
-	m_SpecialButtons[0].SetTempo(JOYPAD_START, 0xFF);
+	m_SpecialButtons[0].SetTempo(JOYPAD_START, FLAG(MODE_DEFAULT));
 	m_SpecialButtons[1].SetTempo(JOYPAD_DPAD_LEFT, FLAG(MODE_DEFAULT));
 	m_SpecialButtons[2].SetTempo(JOYPAD_DPAD_RIGHT, FLAG(MODE_DEFAULT));
 	m_SpecialButtons[3].SetTempo(JOYPAD_LEFT_SHOULDER, 0xFF);
@@ -94,8 +94,8 @@ void DefaultMapper::UpdateInternal(const STime& time)
 		if (BTNDOWN(throttleBtn))
 		{
 			// Throttle and zoom
-			if (BTNDOWN(JOYPAD_RIGHT_THUMB))
-				m_StickSlider.detentUnlocked = true;
+			//if (BTNDOWN(JOYPAD_RIGHT_THUMB))
+			//	m_StickSlider.detentUnlocked = true;
 
 			m_StickSlider.Update(time);
 
@@ -154,24 +154,24 @@ void DefaultMapper::UpdateLogicalButtonsInternal(int& ctr, const STime& time)
 		SetLogicalButton(ctr++, enabled && BtnDown(JOYPAD_X));
 		SetLogicalButton(ctr++, enabled && BtnDown(JOYPAD_Y));
 
+		SetLogicalButton(ctr++, enabled && BtnDown(JOYPAD_BACK));
+		SetLogicalButton(ctr++, enabled && BtnDown(JOYPAD_START));
+		SetLogicalButton(ctr++, enabled && BtnDown(JOYPAD_GUIDE));
+		SetLogicalButton(ctr++, enabled && BtnDown(JOYPAD_SHARE));
+
 		if (IsMode(FLAG(MODE_DEFAULT)))
 		{
 			SetLogicalButton(ctr++, BtnDown(JOYPAD_LEFT_SHOULDER));
 			SetLogicalButton(ctr++, BtnDown(JOYPAD_RIGHT_SHOULDER));
-			SetLogicalButton(ctr++, BtnDown(JOYPAD_BACK));
-			SetLogicalButton(ctr++, BtnDown(JOYPAD_START));
-			SetLogicalButton(ctr++, BtnDown(JOYPAD_GUIDE));
-			SetLogicalButton(ctr++, BtnDown(JOYPAD_SHARE));
+			//SetLogicalButton(ctr++, BtnDown(JOYPAD_BACK));
+			//SetLogicalButton(ctr++, BtnDown(JOYPAD_START));
+			//SetLogicalButton(ctr++, BtnDown(JOYPAD_GUIDE));
+			//SetLogicalButton(ctr++, BtnDown(JOYPAD_SHARE));
 		}
-
-		if (!IsMode(FLAG(MODE_MOUSE)))
-			SetLogicalButton(ctr++, enabled && BtnDown(JOYPAD_LEFT_THUMB));
-
-		if (!IsMode(FLAG(MODE_DEFAULT) | FLAG(MODE_MOUSE)))
-			SetLogicalButton(ctr++, enabled && BtnDown(JOYPAD_RIGHT_THUMB));
 
 		if (!IsMode(FLAG(MODE_DEFAULT) | FLAG(MODE_MOUSE)))
 		{
+			SetLogicalButton(ctr++, enabled && BtnDown(JOYPAD_LEFT_THUMB));
 			SetLogicalButton(ctr++, enabled && BtnDown(JOYPAD_DPAD_UP));
 			SetLogicalButton(ctr++, enabled && BtnDown(JOYPAD_DPAD_RIGHT));
 			SetLogicalButton(ctr++, enabled && BtnDown(JOYPAD_DPAD_DOWN));
