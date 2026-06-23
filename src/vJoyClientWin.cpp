@@ -891,6 +891,43 @@ void SetupCalibrations()
 
 	g_Calibrations.push_back(vkbKg12Calib);
 
+	DeviceCalibrationData vkbHornetCalib = { 0 };
+	wcscpy(vkbHornetCalib.productString, VKBHORNET);
+	vkbHornetCalib.numHats = 0;
+
+	vkbHornetCalib.rangeAxisX = 4096;
+	vkbHornetCalib.rangeAxisY = -4096;
+	vkbHornetCalib.rangeAxisZ = 2048;
+
+	vkbHornetCalib.centerAxisX = true;
+	vkbHornetCalib.centerAxisY = true;
+	vkbHornetCalib.centerAxisZ = true;
+
+	g_Calibrations.push_back(vkbHornetCalib);
+
+	DeviceCalibrationData vkbMcgCalib = { 0 };
+	wcscpy(vkbMcgCalib.productString, VKBMCG);
+	vkbMcgCalib.numHats = 0;
+
+	vkbMcgCalib.rangeAxisX = 4096;
+	vkbMcgCalib.rangeAxisY = -4096;
+	vkbMcgCalib.rangeAxisZ = 2048;
+	vkbMcgCalib.rangeAxisRx = 2048;
+	vkbMcgCalib.rangeAxisRy = 2048;
+	vkbMcgCalib.rangeAxisRz = 2048;
+	vkbMcgCalib.rangeSlider = 2048;
+	vkbMcgCalib.rangeDial = 2048;
+
+	vkbMcgCalib.centerAxisX = true;
+	vkbMcgCalib.centerAxisY = true;
+	vkbMcgCalib.centerAxisZ = true;
+	vkbMcgCalib.centerAxisRx = true;
+	vkbMcgCalib.centerAxisRy = true;
+	vkbMcgCalib.centerAxisRz = true;
+	vkbMcgCalib.centerSlider = true;
+
+	g_Calibrations.push_back(vkbMcgCalib);
+
 	DeviceCalibrationData twcsCalib = { 0 };
 	wcscpy(twcsCalib.productString, TWCSTHROTTLE);
 	twcsCalib.numHats = 1;
