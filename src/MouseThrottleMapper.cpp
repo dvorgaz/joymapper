@@ -27,7 +27,7 @@ MouseThrottleMapper::MouseThrottleMapper()
 	m_MenuLeftBtn = GF_MENU_LEFT;
 
 	m_ButtonAxis = { 0 };
-	m_ButtonAxis.output = &m_Dial;
+	m_ButtonAxis.output = &m_ZoomAxis;
 	m_ButtonAxis.AddValue(0.75).AddValue(0.15);
 
 	m_WheelBrakeAxis = { 0 };
@@ -44,6 +44,8 @@ MouseThrottleMapper::MouseThrottleMapper()
 	m_MouseLocked = 0;
 	m_SavedMouseX = 0;
 	m_SavedMouseY = 0;
+
+	m_Filter = new EWMAFilter(0.03, 0.06, 0.97);
 }
 
 void MouseThrottleMapper::UpdateInternal(const STime& time)
@@ -76,6 +78,11 @@ void MouseThrottleMapper::UpdateInternal(const STime& time)
 
 	static bool mouseLook = false;
 	static bool viewChanged = false;
+	static bool viewBtnDirty = false;
+	static bool manualZoom = false;
+
+	if (m_ButtonAxis.values[0] != FovToAxis(m_FovDefault))
+		m_ButtonAxis.SetValues(2, FovToAxis(m_FovDefault), FovToAxis(45));
 
 	if(viewChanged)
 		m_Mode = MODE_DEFAULT;
@@ -100,12 +107,9 @@ void MouseThrottleMapper::UpdateInternal(const STime& time)
 		LockMouse(false);
 
 		if (time.time - leftModTime < TEMPO_TIME)
-		{
-			// Zoom
-			//m_ButtonAxis.CycleValue();
-
+		{		
 			// Reset zoom
-			m_ZoomAxis = FovToAxis(m_FovDefault);
+			//m_ZoomAxis = FovToAxis(m_FovDefault);
 		}
 	}
 
@@ -123,13 +127,21 @@ void MouseThrottleMapper::UpdateInternal(const STime& time)
 
 		LockMouse(false);
 
-		if (time.time - rightModTime < TEMPO_TIME)
+		if (!viewBtnDirty && time.time - rightModTime < TEMPO_TIME)
 		{
-			if (useMouseLook)
-			{
-				Recenter();
-			}
+			//if (useMouseLook)
+			//{
+			//	Recenter();
+			//}
+
+			// Zoom
+			if(manualZoom)
+				manualZoom = false;
+			else
+				m_ButtonAxis.CycleValue();
 		}
+
+		viewBtnDirty = false;
 	}
 
 	if(m_MouseLocked)
@@ -153,6 +165,7 @@ void MouseThrottleMapper::UpdateInternal(const STime& time)
 			{
 				// Camera move
 				lateralMove = true;
+				viewBtnDirty = true;
 				m_HeadX = Clamp(m_HeadX + ((double)m_mouseDeltaX * lookSensitivity), -1, 1);
 				m_HeadY = Clamp(m_HeadY - ((double)m_mouseDeltaY * lookSensitivity), -1, 1);
 			}
@@ -164,6 +177,7 @@ void MouseThrottleMapper::UpdateInternal(const STime& time)
 			if (abs(m_deltaY) > axisDeadzone || abs(m_deltaX) > axisDeadzone)
 			{
 				viewChanged = true;
+				viewBtnDirty = true;
 				m_Mode = MODE_DEFAULT;
 			}
 		}
@@ -197,7 +211,7 @@ void MouseThrottleMapper::UpdateInternal(const STime& time)
 			{
 				m_axisMode = AM_THROTTLE;
 			}
-			else if (abs(m_deltaX) > axisDeadzone)
+			else if (abs(m_deltaX) > axisDeadzone * 2)
 			{
 				m_axisMode = AM_ZOOM;
 			}
@@ -217,14 +231,16 @@ void MouseThrottleMapper::UpdateInternal(const STime& time)
 			const double zoomSensitivity = 0.001;
 			m_ZoomAxis = Clamp(m_ZoomAxis + ((double)m_mouseDeltaX * -zoomSensitivity), 0, 1);
 			m_Dial = m_ZoomAxis;
+			manualZoom = true;
 		}
 	}
 	else
 	{
-		//m_ZoomAxis = MoveTo(m_ZoomAxis, 0.5, time.deltaTime * (SLIDER_FOLLOW_SPEED) * 0.5);
-		//m_Dial = m_ZoomAxis;
+		//m_Dial = MoveTo(m_Dial, m_ZoomAxis, time.deltaTime * (SLIDER_FOLLOW_SPEED));
+		if(!manualZoom)
+			m_ButtonAxis.Update(time);
 
-		m_Dial = MoveTo(m_Dial, m_ZoomAxis, time.deltaTime * (SLIDER_FOLLOW_SPEED));
+		m_Dial = m_ZoomAxis;
 	}
 
 	if (m_Mode == MODE_RIGHT_MOD)
@@ -361,6 +377,10 @@ void MouseThrottleMapper::UpdateLogicalButtonsInternal(int& ctr, const STime& ti
 	{
 		pulseCtr = 0;
 	}
+
+	const int btOffset = MAX_LOGICAL_BUTTONS - MAX_SPECIAL_BUTTONS - 2;
+	if (ctr < btOffset)
+		ctr = btOffset;
 
 	SetLogicalButton(ctr++, m_ButtonHoldTime[GetShiftAmount(timeBtn)] > 0);
 	SetLogicalButton(ctr++, time.time - lastPulseTime < BUTTON_HOLD_TIME);
