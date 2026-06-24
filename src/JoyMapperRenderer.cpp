@@ -51,7 +51,7 @@ void JoyMapperRenderer::DrawShapes()
 {
 	// Throttle axis
 	if(m_ShowThrottle)
-		DrawAxis(m_Mapper->m_Slider, m_Mapper->GetAfterburnerDetent(), Vector3(400, 105, 0.5), Vector3(20, 200, 0));
+		DrawAxis(m_Mapper->m_Slider, m_Mapper->GetAfterburnerDetent(), Vector3(40, 105, 0.5), Vector3(20, 200, 0));
 }
 
 void JoyMapperRenderer::DrawTexts()

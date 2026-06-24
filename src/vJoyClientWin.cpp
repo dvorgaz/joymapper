@@ -521,9 +521,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	GetWindowRect(hDesktop, &g_DesktopRect);
 
 	int overlayWidth = g_DesktopRect.right / 4;
-	int overlayHeight = g_DesktopRect.bottom / 2;
-	int overlayX = 0;
-	int overlayY = g_DesktopRect.bottom - overlayHeight;
+	int overlayHeight = g_DesktopRect.bottom / 4;
+	int overlayX = overlayWidth * 1;
+	int overlayY = g_DesktopRect.bottom - overlayHeight * 2;
 
 	g_hWnd = CreateWindowEx(WS_EX_TOPMOST | WS_EX_TRANSPARENT | WS_EX_LAYERED, WC_MAINFRAME, TEXT("DCS vJoy Mapper"), WS_POPUP, overlayX, overlayY, overlayWidth, overlayHeight, NULL, NULL, hInstance, NULL);
 	DWORD er = GetLastError();
