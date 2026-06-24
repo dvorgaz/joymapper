@@ -178,7 +178,7 @@ protected:
 		
 		void Update(const STime& time);
 		void AddLogicalButtons(std::function<void(bool)> addFunc);
-		void SetHatButtons(bool up, bool down, bool left, bool right);
+		void SetHatButtons(bool enable, bool up, bool down, bool left, bool right);
 	};
 
 	enum SpecialButtonType
@@ -262,6 +262,7 @@ protected:
 	double m_LTrigger;
 	double m_RTrigger;
 	AxisDisplay m_ThrottleDisplay;
+	wchar_t m_ServiceText[100];
 
 	unsigned long m_MenuActivateBtn1;
 	unsigned long m_MenuActivateBtn2;

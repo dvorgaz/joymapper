@@ -283,8 +283,14 @@ void JoyMapper::RadialButtons::AddLogicalButtons(std::function<void(bool)> addFu
 	activeButtonIdx = -1;
 }
 
-void JoyMapper::RadialButtons::SetHatButtons(bool up, bool down, bool left, bool right)
+void JoyMapper::RadialButtons::SetHatButtons(bool enable, bool up, bool down, bool left, bool right)
 {
+	if (!enable)
+	{
+		activeButtonIdx = -1;
+		return;
+	}
+
 	//static unsigned long mapping[8] = { 18000, 22500, 27000, 31500, 0, 4500, 9000, 13500 };
 	//static unsigned long mapping[3][3] = { {31500,0,4500}, {27000,-1,9000}, {22500,18000,13500} };
 	static unsigned long mapping[3][3] = { {3,4,5}, {2,-1,6}, {1,0,7} }; // Indices into the mapping used in GetMappedPov
@@ -404,6 +410,8 @@ JoyMapper::JoyMapper()
 	m_LTrigger = 0;
 	m_RTrigger = 0;
 	m_ThrottleDisplay = AXD_AUTO;
+
+	swprintf(m_ServiceText, L"");
 
 	m_MenuActivateBtn1 = JOYPAD_BACK;
 	m_MenuActivateBtn2 = JOYPAD_START;

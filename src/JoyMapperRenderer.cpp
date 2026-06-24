@@ -65,6 +65,11 @@ void JoyMapperRenderer::DrawTexts()
 		swprintf(buf, 100, m_Mapper->m_MenuOptions[m_Mapper->m_CategoryIdx][m_Mapper->m_MenuIdx].label.c_str());
 		m_Device->DrawFont(buf, Vector3(WIDTH / 2, 150, 0.5), HudColors::HudGreen);
 	}
+	else if(wcslen(m_Mapper->m_ServiceText) > 0)
+	{
+		swprintf(buf, 100, m_Mapper->m_ServiceText);
+		m_Device->DrawFont(buf, Vector3(WIDTH / 2, 50, 0.5), HudColors::HudGreen);
+	}
 }
 
 void JoyMapperRenderer::DrawAxis(float value, float detent, const Vector3& pos, const Vector3& size)
