@@ -80,11 +80,12 @@ void MouseThrottleMapper::UpdateInternal(const STime& time)
 	static bool viewChanged = false;
 	static bool viewBtnDirty = false;
 	static bool manualZoom = false;
+	static bool tdcMode = false;
 
 	if (m_ButtonAxis.values[0] != FovToAxis(m_FovDefault))
 		m_ButtonAxis.SetValues(2, FovToAxis(m_FovDefault), FovToAxis(45));
 
-	if(viewChanged)
+	if(viewChanged || tdcMode)
 		m_Mode = MODE_DEFAULT;
 
 	if(useMouseLook)
@@ -94,6 +95,9 @@ void MouseThrottleMapper::UpdateInternal(const STime& time)
 
 	if (MOUSEPRESSED(throttleBtn))
 	{
+		if(time.time - leftModTime < 0.3)
+			tdcMode = true;
+
 		leftModTime = time.time;
 		m_deltaX = 0;
 		m_deltaY = 0;
@@ -103,6 +107,7 @@ void MouseThrottleMapper::UpdateInternal(const STime& time)
 	if (MOUSERELEASED(throttleBtn))
 	{
 		m_axisMode = AM_NONE;		
+		tdcMode = false;
 
 		LockMouse(false);
 
@@ -181,6 +186,26 @@ void MouseThrottleMapper::UpdateInternal(const STime& time)
 				m_Mode = MODE_DEFAULT;
 			}
 		}
+	}
+
+	if (tdcMode && MOUSEDOWN(throttleBtn) && !mouseLook)
+	{
+#if 0
+		double speed = 0.005;
+		m_AxisX = Clamp(m_AxisX + ((double)m_mouseDeltaX * speed), -1, 1);
+		m_AxisY = Clamp(m_AxisY - ((double)-m_mouseDeltaY * speed), -1, 1);
+#else
+		double speed = 0.001;
+		double x = Clamp(((double)m_mouseDeltaX / time.deltaTime) * speed, -1, 1);
+		double y = Clamp(((double)-m_mouseDeltaY / time.deltaTime) * speed, -1, 1);
+		m_AxisX = x;// Lerp(m_AxisX, x, time.deltaTime * 10);
+		m_AxisY = y;// Lerp(m_AxisY, y, time.deltaTime * 10);
+#endif
+	}
+	else
+	{
+		m_AxisX = 0;
+		m_AxisY = 0;
 	}
 
 	if (!lateralMove)
@@ -304,16 +329,24 @@ void MouseThrottleMapper::UpdateInternal(const STime& time)
 	// Rudder
 	m_AxisZ = m_PhysAxisZ;
 
-	for (int i = 0; i < MAX_VIRTUAL_POVS; ++i)
+	m_VirtualPOV[0].SetHatButtons(m_Mode == MODE_DEFAULT || m_Mode == MODE_LEFT_MOD, BTNDOWN(GF_TRIM_UP), BTNDOWN(GF_TRIM_DOWN), BTNDOWN(GF_TRIM_LEFT), BTNDOWN(GF_TRIM_RIGHT));
+	m_VirtualPOV[1].SetHatButtons(m_Mode == MODE_RIGHT_MOD, BTNDOWN(GF_TRIM_UP), BTNDOWN(GF_TRIM_DOWN), BTNDOWN(GF_TRIM_LEFT), BTNDOWN(GF_TRIM_RIGHT));
+
+	//for (int i = 0; i < MAX_VIRTUAL_POVS; ++i)
+	//	m_VirtualPOV[i].SetHatButtons(m_Mode == i, BTNDOWN(GF_TRIM_UP), BTNDOWN(GF_TRIM_DOWN), BTNDOWN(GF_TRIM_LEFT), BTNDOWN(GF_TRIM_RIGHT));
+
+	if (m_Mode == MODE_RIGHT_MOD && time.time - rightModTime > TEMPO_TIME)
 	{
-		if (m_Mode == i)
-		{
-			m_VirtualPOV[i].SetHatButtons(BTNDOWN(GF_TRIM_UP), BTNDOWN(GF_TRIM_DOWN), BTNDOWN(GF_TRIM_LEFT), BTNDOWN(GF_TRIM_RIGHT));
-		}
-		else
-		{
-			m_VirtualPOV[i].activeButtonIdx = -1;
-		}
+		swprintf(m_ServiceText, L"M");
+	}
+	else if (tdcMode && MOUSEDOWN(throttleBtn))
+	{
+		double sqMag = m_AxisX * m_AxisX + m_AxisY * m_AxisY;
+		swprintf(m_ServiceText, sqMag >= 1 ? L"|L|" : L"| |");
+	}
+	else
+	{
+		swprintf(m_ServiceText, L"");
 	}
 }
 
@@ -321,37 +354,46 @@ void MouseThrottleMapper::UpdateLogicalButtonsInternal(int& ctr, const STime& ti
 {
 	auto BtnDown = [this](unsigned long btn) { return this->m_JoyButtonsProcessed & btn; };
 
-	for (int i = 0; i < MODE_NUM; ++i)
+	for (int i = 0; i < MODE_NUM - 2; ++i)
 	{
 		bool enabled = m_Mode == (Mode)i;
 		auto IsMode = [i](unsigned char flags) { return FLAG(i) & flags; };
 
-		if (IsMode(FLAG(MODE_DEFAULT) | FLAG(MODE_LEFT_MOD) | FLAG(MODE_RIGHT_MOD)))
+		SetLogicalButton(ctr++, enabled && BtnDown(GF_TRIGGER_1));
+		SetLogicalButton(ctr++, enabled && BtnDown(GF_TRIGGER_2));
+		SetLogicalButton(ctr++, enabled && BtnDown(GF_WPN_REL));
+
+		if (IsMode(FLAG(MODE_DEFAULT)))
 		{
-			SetLogicalButton(ctr++, enabled && BtnDown(GF_TRIGGER_1));
-			SetLogicalButton(ctr++, enabled && BtnDown(GF_TRIGGER_2));
-			SetLogicalButton(ctr++, enabled && BtnDown(GF_WPN_REL));
+			bool b = FLAG(m_Mode) & (FLAG(MODE_DEFAULT) | FLAG(MODE_LEFT_MOD));
+			SetLogicalButton(ctr++, b && BtnDown(GF_R_SIDE));
+			SetLogicalButton(ctr++, b && BtnDown(GF_PINKIE));
+		}
+		else if (!IsMode(FLAG(MODE_LEFT_MOD)))
+		{
 			SetLogicalButton(ctr++, enabled && BtnDown(GF_R_SIDE));
 			SetLogicalButton(ctr++, enabled && BtnDown(GF_PINKIE));
-			//SetLogicalButton(ctr++, enabled && BtnDown(GF_TRIM_UP));
-			//SetLogicalButton(ctr++, enabled && BtnDown(GF_TRIM_RIGHT));
-			//SetLogicalButton(ctr++, enabled && BtnDown(GF_TRIM_DOWN));
-			//SetLogicalButton(ctr++, enabled && BtnDown(GF_TRIM_LEFT));
-			SetLogicalButton(ctr++, enabled && BtnDown(GF_TRIM_CENTER));
-			SetLogicalButton(ctr++, enabled && BtnDown(GF_DMS_UP));
-			SetLogicalButton(ctr++, enabled && BtnDown(GF_DMS_RIGHT));
-			SetLogicalButton(ctr++, enabled && BtnDown(GF_DMS_DOWN));
-			SetLogicalButton(ctr++, enabled && BtnDown(GF_DMS_LEFT));
-			SetLogicalButton(ctr++, enabled && BtnDown(GF_DMS_CENTER));
-			SetLogicalButton(ctr++, enabled && BtnDown(GF_TMS_UP));
-			SetLogicalButton(ctr++, enabled && BtnDown(GF_TMS_RIGHT));
-			SetLogicalButton(ctr++, enabled && BtnDown(GF_TMS_DOWN));
-			SetLogicalButton(ctr++, enabled && BtnDown(GF_TMS_LEFT));
-			SetLogicalButton(ctr++, enabled && BtnDown(GF_TMS_CENTER));
-			SetLogicalButton(ctr++, enabled && BtnDown(GF_EX_1));
-			SetLogicalButton(ctr++, enabled && BtnDown(GF_EX_2));
-			SetLogicalButton(ctr++, enabled && BtnDown(GF_EX_3));
 		}
+
+		//SetLogicalButton(ctr++, enabled && BtnDown(GF_TRIM_UP));
+		//SetLogicalButton(ctr++, enabled && BtnDown(GF_TRIM_RIGHT));
+		//SetLogicalButton(ctr++, enabled && BtnDown(GF_TRIM_DOWN));
+		//SetLogicalButton(ctr++, enabled && BtnDown(GF_TRIM_LEFT));
+
+		SetLogicalButton(ctr++, enabled && BtnDown(GF_TRIM_CENTER));
+		SetLogicalButton(ctr++, enabled && BtnDown(GF_DMS_UP));
+		SetLogicalButton(ctr++, enabled && BtnDown(GF_DMS_RIGHT));
+		SetLogicalButton(ctr++, enabled && BtnDown(GF_DMS_DOWN));
+		SetLogicalButton(ctr++, enabled && BtnDown(GF_DMS_LEFT));
+		SetLogicalButton(ctr++, enabled && BtnDown(GF_DMS_CENTER));
+		SetLogicalButton(ctr++, enabled && BtnDown(GF_TMS_UP));
+		SetLogicalButton(ctr++, enabled && BtnDown(GF_TMS_RIGHT));
+		SetLogicalButton(ctr++, enabled && BtnDown(GF_TMS_DOWN));
+		SetLogicalButton(ctr++, enabled && BtnDown(GF_TMS_LEFT));
+		SetLogicalButton(ctr++, enabled && BtnDown(GF_TMS_CENTER));
+		SetLogicalButton(ctr++, enabled && BtnDown(GF_EX_1));
+		SetLogicalButton(ctr++, enabled && BtnDown(GF_EX_2));
+		SetLogicalButton(ctr++, enabled && BtnDown(GF_EX_3));
 	}
 
 	const unsigned long timeBtn = GF_EX_1;
@@ -378,7 +420,7 @@ void MouseThrottleMapper::UpdateLogicalButtonsInternal(int& ctr, const STime& ti
 		pulseCtr = 0;
 	}
 
-	const int btOffset = MAX_LOGICAL_BUTTONS - MAX_SPECIAL_BUTTONS - 2;
+	const int btOffset = MAX_LOGICAL_BUTTONS /*- MAX_SPECIAL_BUTTONS*/ - 2;
 	if (ctr < btOffset)
 		ctr = btOffset;
 
