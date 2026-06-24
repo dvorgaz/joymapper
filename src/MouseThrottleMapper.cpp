@@ -164,7 +164,6 @@ void MouseThrottleMapper::UpdateInternal(const STime& time)
 				double speed = lookSensitivity * (AxisToFov(m_ZoomAxis) / 80);
 				m_MouseStick.X = Clamp(m_MouseStick.X + ((double)m_mouseDeltaX * speed), -1, 1);
 				m_MouseStick.Y = Clamp(m_MouseStick.Y - ((double)m_mouseDeltaY * speed * 2), -1, 1);
-				//m_MouseStick.UpdateAngleMagnitude();
 			}
 			else
 			{
@@ -191,15 +190,16 @@ void MouseThrottleMapper::UpdateInternal(const STime& time)
 	if (tdcMode && MOUSEDOWN(throttleBtn) && !mouseLook)
 	{
 #if 0
-		double speed = 0.005;
+		const double speed = 0.005;
 		m_AxisX = Clamp(m_AxisX + ((double)m_mouseDeltaX * speed), -1, 1);
 		m_AxisY = Clamp(m_AxisY - ((double)-m_mouseDeltaY * speed), -1, 1);
 #else
-		double speed = 0.001;
+		const double speed = 0.001;
+		const double smoothing = 20;
 		double x = Clamp(((double)m_mouseDeltaX / time.deltaTime) * speed, -1, 1);
 		double y = Clamp(((double)-m_mouseDeltaY / time.deltaTime) * speed, -1, 1);
-		m_AxisX = x;// Lerp(m_AxisX, x, time.deltaTime * 10);
-		m_AxisY = y;// Lerp(m_AxisY, y, time.deltaTime * 10);
+		m_AxisX = Lerp(m_AxisX, x, time.deltaTime * smoothing);
+		m_AxisY = Lerp(m_AxisY, y, time.deltaTime * smoothing);
 #endif
 	}
 	else
@@ -261,7 +261,6 @@ void MouseThrottleMapper::UpdateInternal(const STime& time)
 	}
 	else
 	{
-		//m_Dial = MoveTo(m_Dial, m_ZoomAxis, time.deltaTime * (SLIDER_FOLLOW_SPEED));
 		if(!manualZoom)
 			m_ButtonAxis.Update(time);
 
@@ -311,20 +310,13 @@ void MouseThrottleMapper::UpdateInternal(const STime& time)
 				m_MouseStick.Y = 0 /*+ m_ViewOffsetY*/;
 				centering = false;
 			}
-
-			//m_MouseStick.UpdateAngleMagnitude();
 		}
 
 		m_HeadRX = m_MouseStick.X;
 		m_HeadRY = m_MouseStick.Y;
 	}
 
-	//m_ButtonAxis.Update(time);
 	m_WheelBrakeAxis.Update(time);
-
-	// Stick
-	//m_AxisX = m_LStick.X;
-	//m_AxisY = m_LStick.Y;
 
 	// Rudder
 	m_AxisZ = m_PhysAxisZ;
