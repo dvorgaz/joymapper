@@ -166,6 +166,8 @@ private:
 	Stick m_MouseStick;
 	ButtonAxis m_ButtonAxis;
 	ButtonAxis m_WheelBrakeAxis;
+	ButtonAxis m_TaxiButtonAxis;
+	double m_TaxiThrottleAxis;
 	double m_ABDetent;
 	double m_ZoomAxis;
 	double m_ThrottleAxis;
@@ -177,6 +179,7 @@ private:
 	int m_MouseLocked;
 	long m_SavedMouseX;
 	long m_SavedMouseY;
+	bool m_TaxiMode;
 
 	void UpdateInternal(const STime& time) override;
 	void UpdateLogicalButtonsInternal(int& ctr, const STime& time) override;
