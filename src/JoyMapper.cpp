@@ -833,11 +833,13 @@ bool JoyMapper::GetKeyUp(unsigned long keyCode)
 
 void JoyMapper::SetLogicalButton(int index, bool on)
 {
-	if (index >= NUM_BUTTON_EXTENSIONS * 32)
+	const int blockSize = sizeof(long) * 8;
+
+	if (index >= NUM_BUTTON_EXTENSIONS * blockSize)
 		return;
 
-	int block = index / 32;
-	int offset = index % 32;
+	int block = index / blockSize;
+	int offset = index % blockSize;
 
 	if(on)
 		m_LogicalButtons[block] |= 1 << offset;
@@ -1157,6 +1159,26 @@ JoyMapper::MenuOption::MenuOption(std::wstring label, std::function<void(Setting
 {
 	this->label = label;
 	this->func = func;
+}
+
+JoyMapper::AddButton& JoyMapper::AddButton::Layer(int i)
+{
+	modeLayer = (Mode)i;
+
+	return *this;
+}
+
+JoyMapper::AddButton& JoyMapper::AddButton::operator()(unsigned char modeMask, unsigned long btn, bool condition)
+{
+	bool enabled = mapper->m_Mode == modeLayer;
+
+	if (modeLayer == MODE_DEFAULT)
+		enabled |= (FLAG(mapper->m_Mode) & modeMask) == 0;
+
+	if (FLAG(modeLayer) & modeMask)
+		mapper->SetLogicalButton(ctr++, enabled && condition && (mapper->m_JoyButtonsProcessed & btn));
+
+	return *this;
 }
 
 JoyMapper::Settings::Settings(JoyMapper* mapper)

@@ -250,6 +250,17 @@ protected:
 		MenuOption(std::wstring label, std::function<void(Settings&)> func);
 	};	
 
+	struct AddButton
+	{
+		Mode modeLayer;
+		int& ctr;
+		JoyMapper* mapper;
+
+		AddButton(JoyMapper* mapper, int& ctr) : mapper(mapper), ctr(ctr), modeLayer(MODE_DEFAULT) {}
+		AddButton& Layer(int i);
+		AddButton& operator()(unsigned char modeMask, unsigned long btn, bool condition = true);
+	};
+
 	// Internal parameters
 	const wchar_t* m_deviceID;
 	Mode m_Mode;
