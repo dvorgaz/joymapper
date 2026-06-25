@@ -88,7 +88,6 @@ public:
 		AXD_HIDE
 	};
 
-protected:
 	enum Mode
 	{
 		MODE_DEFAULT = 0,
@@ -99,6 +98,7 @@ protected:
 		MODE_NUM
 	};
 
+protected:
 	struct Stick
 	{
 		double X;

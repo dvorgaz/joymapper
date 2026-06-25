@@ -52,16 +52,18 @@ MouseThrottleMapper::MouseThrottleMapper()
 	m_SavedMouseY = 0;
 	m_TaxiMode = false;
 
-	m_SpecialButtons[0].SetTempo(GF_EX_1, FLAG(MODE_DEFAULT) | FLAG(MODE_LEFT_MOD));
+	//m_SpecialButtons[0].SetTempo(GF_EX_1, FLAG(MODE_DEFAULT) | FLAG(MODE_LEFT_MOD));
 
 	m_Filter = new EWMAFilter(0.03, 0.06, 0.97);
 }
 
+const unsigned long g_brakeBtn = GF_TRIGGER_1;
+const unsigned long g_gasBtn = GF_WPN_REL;
+const JoyMapper::Mode g_viewMode = JoyMapper::Mode::MODE_LEFT_MOD;
+const JoyMapper::Mode g_throttleMode = JoyMapper::Mode::MODE_RIGHT_MOD;
+
 void MouseThrottleMapper::UpdateInternal(const STime& time)
 {
-	const unsigned long brakeBtn = GF_TRIGGER_1;
-	const unsigned long gasBtn = GF_WPN_REL;
-
 	const bool useMouseLook = true;
 	const int throttleBtn = 1;
 	const int viewBtn = 0;
@@ -69,15 +71,15 @@ void MouseThrottleMapper::UpdateInternal(const STime& time)
 	m_Mode = MODE_DEFAULT;
 	if (MOUSEDOWN(viewBtn))
 	{
-		m_Mode = MODE_RIGHT_MOD;
+		m_Mode = g_viewMode;
 	}
 	else if (MOUSEDOWN(throttleBtn))
 	{
-		m_Mode = MODE_LEFT_MOD;
+		m_Mode = g_throttleMode;
 	}
 
-	static double leftModTime = time.time;
-	static double rightModTime = time.time;
+	static double throttleModTime = time.time;
+	static double viewModTime = time.time;
 	static double lastLookToggleTime = time.time;
 
 	static POINT point;
@@ -88,7 +90,6 @@ void MouseThrottleMapper::UpdateInternal(const STime& time)
 
 	static bool mouseLook = false;
 	static bool viewChanged = false;
-	static bool viewBtnDirty = false;
 	static bool manualZoom = false;
 	static bool tdcMode = false;
 
@@ -99,19 +100,13 @@ void MouseThrottleMapper::UpdateInternal(const STime& time)
 		m_TaxiMode = !m_TaxiMode;
 
 	if(viewChanged)
-		m_Mode = MODE_DEFAULT;
-
-	if(useMouseLook)
-		mouseLook = MOUSEDOWN(viewBtn);
+		m_Mode = MODE_DEFAULT;	
 
 	m_ThrottleDisplay = AXD_HIDE;
 
 	if (MOUSEPRESSED(throttleBtn))
-	{
-		if(time.time - leftModTime < 0.3)
-			tdcMode = true;
-
-		leftModTime = time.time;
+	{	
+		throttleModTime = time.time;
 		m_deltaX = 0;
 		m_deltaY = 0;
 
@@ -119,21 +114,29 @@ void MouseThrottleMapper::UpdateInternal(const STime& time)
 	}
 	if (MOUSERELEASED(throttleBtn))
 	{
-		m_axisMode = AM_NONE;		
-		tdcMode = false;
+		m_axisMode = AM_NONE;
 
 		LockMouse(false);
 
-		if (time.time - leftModTime < TEMPO_TIME)
+		if (time.time - throttleModTime < TEMPO_TIME)
 		{		
 			// Reset zoom
 			//m_ZoomAxis = FovToAxis(m_FovDefault);
+
+			// Zoom
+			if (manualZoom)
+				manualZoom = false;
+			else
+				m_ButtonAxis.CycleValue();
 		}
 	}
 
 	if (MOUSEPRESSED(viewBtn))
 	{
-		rightModTime = time.time;
+		if (time.time - viewModTime < 0.3)
+			tdcMode = true;
+
+		viewModTime = time.time;
 		m_deltaX = 0;
 		m_deltaY = 0;
 
@@ -142,31 +145,27 @@ void MouseThrottleMapper::UpdateInternal(const STime& time)
 	if (MOUSERELEASED(viewBtn))
 	{
 		viewChanged = false;
+		tdcMode = false;
 
 		LockMouse(false);
 
-		if (!viewBtnDirty && time.time - rightModTime < TEMPO_TIME)
+		if (time.time - viewModTime < TEMPO_TIME)
 		{
 			//if (useMouseLook)
 			//{
 			//	Recenter();
-			//}
-
-			// Zoom
-			if(manualZoom)
-				manualZoom = false;
-			else
-				m_ButtonAxis.CycleValue();
+			//}			
 		}
-
-		viewBtnDirty = false;
 	}
 
 	if(m_MouseLocked)
 		SetCursorPositionScreenSpace(1, 0);
 
+	if (useMouseLook)
+		mouseLook = MOUSEDOWN(viewBtn) && !tdcMode;
+
 	bool lateralMove = false;
-	if (useMouseLook && (m_Mode == MODE_DEFAULT || m_Mode == MODE_RIGHT_MOD))
+	if (useMouseLook && (m_Mode == MODE_DEFAULT || m_Mode == g_viewMode))
 	{
 		if (mouseLook)
 		{
@@ -182,7 +181,6 @@ void MouseThrottleMapper::UpdateInternal(const STime& time)
 			{
 				// Camera move
 				lateralMove = true;
-				viewBtnDirty = true;
 				m_HeadX = Clamp(m_HeadX + ((double)m_mouseDeltaX * lookSensitivity), -1, 1);
 				m_HeadY = Clamp(m_HeadY - ((double)m_mouseDeltaY * lookSensitivity), -1, 1);
 			}
@@ -194,13 +192,12 @@ void MouseThrottleMapper::UpdateInternal(const STime& time)
 			if (abs(m_deltaY) > axisDeadzone || abs(m_deltaX) > axisDeadzone)
 			{
 				viewChanged = true;
-				viewBtnDirty = true;
 				m_Mode = MODE_DEFAULT;
 			}
 		}
 	}
 
-	if (tdcMode && MOUSEDOWN(throttleBtn) && !mouseLook)
+	if (tdcMode && MOUSEDOWN(viewBtn) && !mouseLook)
 	{
 #if 0
 		const double speed = 0.005;
@@ -231,10 +228,10 @@ void MouseThrottleMapper::UpdateInternal(const STime& time)
 		m_HeadY = Lerp(m_HeadY, 0, time.deltaTime * 10);
 	}
 
-	if (m_Mode == MODE_LEFT_MOD)
+	if (m_Mode == g_throttleMode)
 	{
 		// Wheel brake
-		//if (BTNDOWN(brakeBtn))
+		//if (BTNDOWN(g_brakeBtn))
 		//{
 		//	m_WheelBrakeAxis.MoveTowardNextValue();
 		//}
@@ -279,7 +276,7 @@ void MouseThrottleMapper::UpdateInternal(const STime& time)
 		m_Dial = m_ZoomAxis;
 	}
 
-	if (m_Mode == MODE_RIGHT_MOD)
+	if (m_Mode == g_viewMode)
 	{
 		if (!useMouseLook)
 		{
@@ -328,12 +325,12 @@ void MouseThrottleMapper::UpdateInternal(const STime& time)
 		m_HeadRY = m_MouseStick.Y;
 	}
 
-	if (m_TaxiMode && BTNDOWN(brakeBtn))
+	if (m_TaxiMode && BTNDOWN(g_brakeBtn))
 	{
 		m_WheelBrakeAxis.MoveTowardNextValue();
 	}
 
-	if (m_TaxiMode && BTNDOWN(gasBtn))
+	if (m_TaxiMode && BTNDOWN(g_gasBtn))
 	{
 		m_TaxiButtonAxis.MoveTowardNextValue();
 	}
@@ -347,8 +344,8 @@ void MouseThrottleMapper::UpdateInternal(const STime& time)
 	// Rudder
 	m_AxisZ = m_PhysAxisZ;
 
-	m_VirtualPOV[0].SetHatButtons(m_Mode == MODE_DEFAULT || m_Mode == MODE_LEFT_MOD, BTNDOWN(GF_TRIM_UP), BTNDOWN(GF_TRIM_DOWN), BTNDOWN(GF_TRIM_LEFT), BTNDOWN(GF_TRIM_RIGHT));
-	m_VirtualPOV[1].SetHatButtons(m_Mode == MODE_RIGHT_MOD, BTNDOWN(GF_TRIM_UP), BTNDOWN(GF_TRIM_DOWN), BTNDOWN(GF_TRIM_LEFT), BTNDOWN(GF_TRIM_RIGHT));
+	m_VirtualPOV[0].SetHatButtons(m_Mode == MODE_DEFAULT || m_Mode == g_throttleMode, BTNDOWN(GF_TRIM_UP), BTNDOWN(GF_TRIM_DOWN), BTNDOWN(GF_TRIM_LEFT), BTNDOWN(GF_TRIM_RIGHT));
+	m_VirtualPOV[1].SetHatButtons(m_Mode == g_viewMode, BTNDOWN(GF_TRIM_UP), BTNDOWN(GF_TRIM_DOWN), BTNDOWN(GF_TRIM_LEFT), BTNDOWN(GF_TRIM_RIGHT));
 
 	//for (int i = 0; i < MAX_VIRTUAL_POVS; ++i)
 	//	m_VirtualPOV[i].SetHatButtons(m_Mode == i, BTNDOWN(GF_TRIM_UP), BTNDOWN(GF_TRIM_DOWN), BTNDOWN(GF_TRIM_LEFT), BTNDOWN(GF_TRIM_RIGHT));
@@ -357,15 +354,15 @@ void MouseThrottleMapper::UpdateInternal(const STime& time)
 	{
 		swprintf(m_ServiceText, L"T");
 	}
-	else if (m_Mode == MODE_RIGHT_MOD && time.time - rightModTime > TEMPO_TIME)
-	{
-		swprintf(m_ServiceText, L"M");
-	}
-	else if (tdcMode && MOUSEDOWN(throttleBtn))
+	else if (tdcMode)
 	{
 		double sqMag = m_AxisX * m_AxisX + m_AxisY * m_AxisY;
 		swprintf(m_ServiceText, sqMag >= 1 ? L"|L|" : L"| |");
 	}
+	else if (m_Mode == g_viewMode && time.time - viewModTime > TEMPO_TIME)
+	{
+		swprintf(m_ServiceText, L"M");
+	}	
 	else
 	{
 		swprintf(m_ServiceText, L"");
@@ -375,33 +372,31 @@ void MouseThrottleMapper::UpdateInternal(const STime& time)
 void MouseThrottleMapper::UpdateLogicalButtonsInternal(int& ctr, const STime& time)
 {
 	AddButton add(this, ctr);
-	unsigned char mask = FLAG(MODE_DEFAULT) | FLAG(MODE_RIGHT_MOD);
+	unsigned char modeMask = FLAG(MODE_DEFAULT) | FLAG(g_viewMode);
 
 	for (int i = 0; i < MODE_NUM - 2; ++i)
 	{
 		add.Layer(i);
-
-		bool taxi = m_TaxiMode && (FLAG(i) & (FLAG(MODE_DEFAULT) | FLAG(MODE_LEFT_MOD)));
-
-		add(0xFF, GF_TRIGGER_1, !taxi);
-		add(0xFF, GF_TRIGGER_2, !taxi);
-		add(0xFF, GF_WPN_REL, !taxi);
-		add(mask, GF_R_SIDE);
-		add(mask, GF_PINKIE);
-		add(0xFF, GF_TRIM_CENTER);
-		add(0xFF, GF_DMS_UP);
-		add(0xFF, GF_DMS_RIGHT);
-		add(0xFF, GF_DMS_DOWN);
-		add(0xFF, GF_DMS_LEFT);
-		add(0xFF, GF_DMS_CENTER);
-		add(0xFF, GF_TMS_UP);
-		add(0xFF, GF_TMS_RIGHT);
-		add(0xFF, GF_TMS_DOWN);
-		add(0xFF, GF_TMS_LEFT);
-		add(0xFF, GF_TMS_CENTER);
-		add(mask, GF_EX_1);
-		add(0xFF, GF_EX_2);
-		add(0xFF, GF_EX_3);
+		add(modeMask, GF_TRIGGER_1, !m_TaxiMode);
+		add(modeMask, GF_TRIGGER_2, !m_TaxiMode);
+		add(modeMask, GF_WPN_REL, !m_TaxiMode);
+		add(modeMask, GF_R_SIDE);
+		add(modeMask, GF_PINKIE);
+		add(modeMask, GF_TRIM_CENTER);
+		add(modeMask, GF_DMS_UP);
+		add(modeMask, GF_DMS_RIGHT);
+		add(modeMask, GF_DMS_DOWN);
+		add(modeMask, GF_DMS_LEFT);
+		add(modeMask, GF_DMS_CENTER);
+		add(modeMask, GF_TMS_UP);
+		add(modeMask, GF_TMS_RIGHT);
+		add(modeMask, GF_TMS_DOWN);
+		add(modeMask, GF_TMS_LEFT);
+		add(modeMask, GF_TMS_CENTER);
+		add(0xff, GF_EX_1);
+		add(modeMask, GF_EX_2);
+		add(modeMask, GF_EX_3);
+		add(FLAG(MODE_DEFAULT), g_brakeBtn, m_TaxiMode);
 	}
 
 #if 0
