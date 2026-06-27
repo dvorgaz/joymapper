@@ -386,7 +386,7 @@ protected:
 	virtual void UpdateInternal(const STime& time) = 0;
 	virtual void UpdateLogicalButtonsInternal(int& ctr, const STime& time) = 0;
 
-	void UpdateHeadAxes(double* outAxes);
+	virtual void UpdateHeadAxes(double* outAxes);
 
 public:
 	JoyMapper();

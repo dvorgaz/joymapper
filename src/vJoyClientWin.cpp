@@ -835,7 +835,7 @@ void MsgBox(HWND hWnd, const char* str, ...)
 
 JoyMapper* GetMapper(const wchar_t* mapperName)
 {
-	std::wstring names[] = {L"Default", L"MouseThrottle"};
+	std::wstring names[] = {L"Default", L"MouseThrottle", L"IL2"};
 	int num = sizeof(names) / sizeof(*names);
 
 	std::wstring name = mapperName;
@@ -854,6 +854,7 @@ JoyMapper* GetMapper(const wchar_t* mapperName)
 	{
 	case 0: return new DefaultMapper();
 	case 1: return new MouseThrottleMapper();
+	case 2: return new IL2Mapper();
 	}
 
 	return nullptr;
@@ -869,6 +870,8 @@ void SetupCalibrations()
 	vkbCalib.rangeAxisY = -4096;
 	vkbCalib.rangeAxisZ = 2048;
 	vkbCalib.rangeAxisRz = 2048;
+	vkbCalib.rangeSlider = 2048;
+	vkbCalib.rangeDial = 2048;
 
 	vkbCalib.centerAxisX = true;
 	vkbCalib.centerAxisY = true;

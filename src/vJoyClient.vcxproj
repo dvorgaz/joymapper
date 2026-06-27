@@ -282,6 +282,7 @@
     <ClCompile Include="Filter.cpp" />
     <ClCompile Include="HalfpadMapper.cpp" />
     <ClCompile Include="HotasMapper.cpp" />
+    <ClCompile Include="IL2Mapper.cpp" />
     <ClCompile Include="JoyMapper.cpp" />
     <ClCompile Include="JoyMapperRenderer.cpp" />
     <ClCompile Include="JoyMapperVariants.cpp" />

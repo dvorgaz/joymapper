@@ -186,3 +186,39 @@ private:
 
 	void LockMouse(bool locked);
 };
+
+//-----------------------------------------------------------------------------
+
+class IL2Mapper : public JoyMapper
+{
+	enum AxisMode
+	{
+		AM_NONE,
+		AM_THROTTLE,
+		AM_ZOOM
+	};
+
+public:
+	IL2Mapper();
+
+private:
+	Stick m_MouseStick;
+	ButtonAxis m_ButtonAxis;
+	double m_ABDetent;
+	double m_ZoomAxis;
+	double m_ThrottleAxis;
+	AxisMode m_axisMode;
+	long m_deltaX;
+	long m_deltaY;
+	long m_ScreenWidth;
+	long m_ScreenHeight;
+	int m_MouseLocked;
+	long m_SavedMouseX;
+	long m_SavedMouseY;
+
+	void UpdateInternal(const STime& time) override;
+	void UpdateLogicalButtonsInternal(int& ctr, const STime& time) override;
+	void UpdateHeadAxes(double* outAxes) override;
+
+	void LockMouse(bool locked);
+};
